@@ -1,0 +1,41 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import cv2
+import time
+
+#procedure which determines the minimum of a convex function f in the interval [a, b] using “trisection" of the interval
+def trisection(f, left, right, tol):
+    while (right - left) > tol:
+        middle = (left + right)/2
+        lm = (left + middle)/2
+        rm = (middle + right)/2
+        if f(lm) < f(rm):
+            right = rm
+        else:
+            left = lm
+    return (left + right)/2
+
+
+
+def f_convex(x):
+    alpha = 1
+    beta = 2
+    return np.exp(-alpha*x)+np.power(x,beta)
+
+
+a = 0
+b = 1
+
+tol = 0.0001
+    
+minimum = trisection(f_convex,a,b,tol)
+
+x = np.linspace(0,1,100)
+y = f_convex(x)
+plt.plot(x,y)
+plt.plot(minimum,f_convex(minimum),'ro')
+plt.title("Find Minimum")
+plt.xlabel("x")
+plt.ylabel("y")
+plt.legend(["Convex Function","Mimimum of Convex Function"])
+plt.show()     

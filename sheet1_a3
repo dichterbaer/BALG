@@ -1,0 +1,41 @@
+import cv2 
+import matplotlib.pyplot as plt
+import sys
+import numpy as np
+
+sys.setrecursionlimit(400000000)
+
+def floodfill(img, xstart, ystart, target, replacement):
+
+    if(img[ystart, xstart]!= target):
+        return img
+    else:
+        img[ystart, xstart] = replacement
+        # cv2.imshow('vorher',img)
+        # cv2.waitKey()
+        floodfill(img, xstart - 1, ystart, target, replacement)
+        floodfill(img, xstart + 1, ystart, target, replacement)
+        floodfill(img, xstart, ystart + 1, target, replacement)
+        floodfill(img, xstart, ystart - 1, target, replacement)
+
+
+
+
+
+img = cv2.imread('C:/Users/MStempel/Documents/HDA/BALG/data/testimage2_100_100.png', 0)
+img = cv2.bitwise_not(img)
+
+cv2.imshow('vorher',img)
+
+
+cv2.waitKey()
+
+xstart = 50
+ystart = 50
+img_filled = np.array(img, copy=True) 
+img_filled = floodfill(img_filled, xstart, ystart, 0, 255)
+
+
+cv2.imshow('gefuellt',img_filled)
+
+cv2.waitKey()
