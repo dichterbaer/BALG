@@ -33,8 +33,6 @@ img = cv2.imread(image_filepath, 0)
 img = cv2.bitwise_not(img)
 
 cv2.imshow('vorher', img)
-
-
 cv2.waitKey()
 
 xstart = 8
@@ -44,14 +42,15 @@ img_filled_8_neighbors = img.copy()
 img_filled_4_neighbors = floodfill(img_filled_4_neighbors, xstart, ystart, 0, 255, use8neighbors=False)
 img_filled_8_neighbors = floodfill(img_filled_8_neighbors, xstart, ystart, 0, 255, use8neighbors=True)
 
+img_rgb = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
+#mark start point red 
+img_rgb[ystart, xstart] = (255, 0, 0)
+
 fig, ax = plt.subplots(1, 3, figsize=(15, 5))
-ax[0].imshow(img, cmap='gray')
-ax[0].set_title('Original Image')
+ax[0].imshow(img_rgb)
+ax[0].set_title('Original Image, start point marked red')
 ax[1].imshow(img_filled_4_neighbors, cmap='gray')
 ax[1].set_title('filled with 4 neighbors')
 ax[2].imshow(img_filled_8_neighbors, cmap='gray')
 ax[2].set_title('filled with 8 neighbors')
 plt.show()
-# cv2.imshow('gefuellt', img_filled)
-# cv2.waitKey()
-# cv2.destroyAllWindows()
