@@ -1,41 +1,57 @@
 import cv2 
-import matplotlib.pyplot as plt
 import sys
-import numpy as np
+from matplotlib import pyplot as plt
 
 sys.setrecursionlimit(400000000)
 
-def floodfill(img, xstart, ystart, target, replacement):
-
+def floodfill(img, xstart, ystart, target, replacement, use8neighbors=False):
+    if xstart < 0 or xstart >= img.shape[1] or ystart < 0 or ystart >= img.shape[0]:
+        return img
     if(img[ystart, xstart]!= target):
         return img
     else:
         img[ystart, xstart] = replacement
         # cv2.imshow('vorher',img)
-        # cv2.waitKey()
-        floodfill(img, xstart - 1, ystart, target, replacement)
-        floodfill(img, xstart + 1, ystart, target, replacement)
-        floodfill(img, xstart, ystart + 1, target, replacement)
-        floodfill(img, xstart, ystart - 1, target, replacement)
+        # cv2.waitKey(50)
+        floodfill(img, xstart - 1, ystart, target, replacement, use8neighbors)
+        floodfill(img, xstart + 1, ystart, target, replacement, use8neighbors)
+        floodfill(img, xstart, ystart + 1, target, replacement, use8neighbors)
+        floodfill(img, xstart, ystart - 1, target, replacement, use8neighbors)
+        if use8neighbors:
+            floodfill(img, xstart - 1, ystart - 1, target, replacement, use8neighbors)
+            floodfill(img, xstart + 1, ystart - 1, target, replacement, use8neighbors)
+            floodfill(img, xstart - 1, ystart + 1, target, replacement, use8neighbors)
+            floodfill(img, xstart + 1, ystart + 1, target, replacement, use8neighbors)
+    return img
 
 
 
 
 
-img = cv2.imread('C:/Users/MStempel/Documents/HDA/BALG/data/testimage2_100_100.png', 0)
+image_filepath = r'data\testimage_neighborhood.png'
+img = cv2.imread(image_filepath, 0)
 img = cv2.bitwise_not(img)
 
-cv2.imshow('vorher',img)
+cv2.imshow('vorher', img)
 
 
 cv2.waitKey()
 
-xstart = 50
-ystart = 50
-img_filled = np.array(img, copy=True) 
-img_filled = floodfill(img_filled, xstart, ystart, 0, 255)
+xstart = 8
+ystart = 10
+img_filled_4_neighbors = img.copy()
+img_filled_8_neighbors = img.copy()
+img_filled_4_neighbors = floodfill(img_filled_4_neighbors, xstart, ystart, 0, 255, use8neighbors=False)
+img_filled_8_neighbors = floodfill(img_filled_8_neighbors, xstart, ystart, 0, 255, use8neighbors=True)
 
-
-cv2.imshow('gefuellt',img_filled)
-
-cv2.waitKey()
+fig, ax = plt.subplots(1, 3, figsize=(15, 5))
+ax[0].imshow(img, cmap='gray')
+ax[0].set_title('Original Image')
+ax[1].imshow(img_filled_4_neighbors, cmap='gray')
+ax[1].set_title('filled with 4 neighbors')
+ax[2].imshow(img_filled_8_neighbors, cmap='gray')
+ax[2].set_title('filled with 8 neighbors')
+plt.show()
+# cv2.imshow('gefuellt', img_filled)
+# cv2.waitKey()
+# cv2.destroyAllWindows()
