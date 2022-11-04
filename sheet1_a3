@@ -1,16 +1,48 @@
 import cv2 
 import sys
+import numpy as np
 from matplotlib import pyplot as plt
+import timeit
+import time
+
 
 sys.setrecursionlimit(400000000)
+calls = 0
+pixelsfilled = 0
+
+
+filepaths = {
+    0: r'data\testimage_9x9.png',
+    1: r'data\testimage_neighborhood.png',
+    2: r'data\testimage_kinda_dog.png',
+    3: r'data\testimage_50_50.png',
+}
+
+def read_image(image_number):
+    img = cv2.imread(filename=filepaths.get(image_number))
+    if len(img.shape)>2:
+        img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+    if(img.shape[1]> 1500 or img.shape[0]> 1500):
+        scale_percent = 50 # percent of original size
+        width = int(img.shape[1] * scale_percent / 100)
+        height = int(img.shape[0] * scale_percent / 100)
+        dim = (width, height)   
+        img = cv2.resize(img, dim)
+    return img
+
+
 
 def floodfill(img, xstart, ystart, target, replacement, use8neighbors=False):
+    global pixelsfilled
+    global calls
+    calls += 1
     if xstart < 0 or xstart >= img.shape[1] or ystart < 0 or ystart >= img.shape[0]:
         return img
     if(img[ystart, xstart]!= target):
         return img
     else:
         img[ystart, xstart] = replacement
+        pixelsfilled += 1
         # cv2.imshow('vorher',img)
         # cv2.waitKey(50)
         floodfill(img, xstart - 1, ystart, target, replacement, use8neighbors)
@@ -24,33 +56,59 @@ def floodfill(img, xstart, ystart, target, replacement, use8neighbors=False):
             floodfill(img, xstart + 1, ystart + 1, target, replacement, use8neighbors)
     return img
 
-
-
-
-
-image_filepath = r'data\testimage_neighborhood.png'
-img = cv2.imread(image_filepath, 0)
+image_number = 3
+img = read_image(image_number)
 img = cv2.bitwise_not(img)
 
-cv2.imshow('vorher', img)
-cv2.waitKey()
+# cv2.imshow('vorher', img)
+# cv2.waitKey()
 
-xstart = 8
-ystart = 10
+xstart = 17
+ystart = 17
 img_filled_4_neighbors = img.copy()
 img_filled_8_neighbors = img.copy()
 img_filled_4_neighbors = floodfill(img_filled_4_neighbors, xstart, ystart, 0, 255, use8neighbors=False)
+calls4 = calls
+pixelsfilled4 = pixelsfilled
+calls = 0
+pixelsfilled = 0
 img_filled_8_neighbors = floodfill(img_filled_8_neighbors, xstart, ystart, 0, 255, use8neighbors=True)
+calls8 = calls
+pixelsfilled8 = pixelsfilled
+executions = 100000
+
+time4 = timeit.timeit('floodfill(img_filled_4_neighbors, xstart, ystart, 0, 255, use8neighbors=False)', globals=globals(), number=executions)/executions
+time8 = timeit.timeit('floodfill(img_filled_8_neighbors, xstart, ystart, 0, 255, use8neighbors=True)', globals=globals(), number=executions)/executions
+
+print('timeit: 4 neighbors: ', time4, 's')
+print('timeit: 8 neighbors: ', time8, 's')
+
+t1 = time.time()
+for i in range(executions):
+    floodfill(img_filled_4_neighbors, xstart, ystart, 0, 255, use8neighbors=False)
+t2 = time.time()
+time4 = (t2-t1)/executions
+
+t1 = time.time()
+for i in range(0, executions):
+    floodfill(img_filled_8_neighbors, xstart, ystart, 0, 255, use8neighbors=True)
+t2 = time.time()
+time8 = (t2-t1)/executions
+
+print('time.time: 4 neighbors: ', time4, 's')
+print('time.time: 8 neighbors: ', time8, 's')
 
 img_rgb = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
 #mark start point red 
 img_rgb[ystart, xstart] = (255, 0, 0)
 
 fig, ax = plt.subplots(1, 3, figsize=(15, 5))
+fig.suptitle("Floodfill Algorithm recursive", fontsize=15)
 ax[0].imshow(img_rgb)
 ax[0].set_title('Original Image, start point marked red')
 ax[1].imshow(img_filled_4_neighbors, cmap='gray')
-ax[1].set_title('filled with 4 neighbors')
+ax[1].set_title('filled with 4 neighbors \n calls = ' + str(calls4) + '; pixels filled = ' + str(pixelsfilled4))
 ax[2].imshow(img_filled_8_neighbors, cmap='gray')
-ax[2].set_title('filled with 8 neighbors')
+ax[2].set_title('filled with 8 neighbors \n calls = ' + str(calls8) + '; pixels filled = ' + str(pixelsfilled8))
 plt.show()
+

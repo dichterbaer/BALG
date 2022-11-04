@@ -1,0 +1,74 @@
+import numpy as np
+import timeit
+import sys
+
+
+sys.setrecursionlimit(400000000)
+
+def partition(array, low, high):
+    pivot = array[high]
+    i = low - 1
+
+    for j in range(low, high):
+        if array[j] <= pivot:
+            i = i + 1
+            (array[i], array[j]) = (array[j], array[i])
+
+    (array[i + 1], array[high]) = (array[high], array[i + 1])
+    return i + 1
+
+def quickSort(array, low, high, quartile=-1):
+    if quartile == -1:
+        if low < high:
+            pi = partition(array, low, high)
+            quickSort(array, low, pi - 1)
+            quickSort(array, pi + 1, high)
+    else:
+        pi = partition(array, low, high)
+        if low < quartile:
+            quickSort(array, pi + 1, high, quartile)
+        elif low >= quartile: 
+            quickSort(array, low, pi - 1, quartile)
+    return
+
+
+def find_quartile(array, q):
+    if q < 0 or q > 1:
+        return 0
+    q = np.floor(len(array)*q)
+    quickSort(array, 0, len(array)-1, q)
+    return array[q]
+
+
+def find_interquartile_range(array):
+    q1 = find_quartile(array, 0.25)
+    q3 = find_quartile(array, 0.75)
+    return q3-q1
+
+
+def find_interquartile_range_np(array):
+    q1 = np.percentile(array, 25)
+    q3 = np.percentile(array, 75)
+    return q3-q1
+
+
+def find_interquartile_range_full_sort(array):
+    array = quickSort(array, 0, len(array)-1)
+    q1 = array[int(len(array)*0.25)]
+    q3 = array[int(len(array)*0.75)]
+    return q3-q1
+
+
+
+num_entries = 3
+random_array = np.random.rand(num_entries)
+
+num_trials = 1000
+#time all different ways to find interquantile range
+print("time for find_interquartile_range_full_sort: ", timeit.timeit(lambda: find_interquartile_range_full_sort(random_array), number=num_trials)/num_trials+"s")
+print("time for find_interquartile_range_np: ", timeit.timeit(lambda: find_interquartile_range_np(random_array), number=num_trials) / num_trials + "s")
+print("time for find_interquartile_range: ", timeit.timeit(lambda: find_interquartile_range(random_array), number=num_trials) / num_trials + "s")
+
+
+print() 
+
