@@ -1,5 +1,6 @@
 import numpy as np
 import timeit
+from matplotlib import pyplot as plt
 import sys
 
 
@@ -32,11 +33,47 @@ def quickSort(array, low, high, quartile=-1):
     return
 
 
+def quickSort2(array, low, high, quartile=-1):
+    if len(array) <= 1:
+        return
+
+    if low==-1:
+        low = 0
+    if high==-1:
+        high = len(array)-1        
+        
+    if low >= high:
+        return
+       
+    # partition
+    pivot = array[high]
+    i = low - 1
+    for j in range (low,high):
+        if array[j] <= pivot:
+            i += 1
+            array[i],array[j]=array[j],array[i]
+            
+    array[i+1],array[high]=array[high],array[i+1]
+    pi = i+1
+    
+    if quartile==-1:
+        # normal sort        
+        quickSort2(array,low,pi-1)  
+        quickSort2(array,pi+1,high)            
+        return 
+    else:
+        # find quantile
+        if low < quartile:
+            quickSort2(array,pi+1,high, quartile)
+        elif low >= quartile: 
+            quickSort2(array,low,pi-1, quartile)
+        return 
+
 def find_quartile(array, q):
     if q < 0 or q > 1:
         return 0
-    q = np.floor(len(array)*q)
-    quickSort(array, 0, len(array)-1, q)
+    q = np.floor(len(array)*q).astype(int)
+    quickSort2(array, 0, len(array)-1, q)
     return array[q]
 
 
@@ -53,21 +90,42 @@ def find_interquartile_range_np(array):
 
 
 def find_interquartile_range_full_sort(array):
-    array = quickSort(array, 0, len(array)-1)
+    quickSort2(array, 0, len(array)-1)
     q1 = array[int(len(array)*0.25)]
     q3 = array[int(len(array)*0.75)]
     return q3-q1
 
 
 
-num_entries = 3
+num_entries = 1000
 random_array = np.random.rand(num_entries)
+sorted_array = random_array.copy()
+partial_sorted_array = random_array.copy()
 
-num_trials = 1000
+range_full = find_interquartile_range_full_sort(sorted_array)
+range_partial = find_interquartile_range(partial_sorted_array)
+range_np = find_interquartile_range_np(random_array)
+
+print("Full sort: ", range_full)
+print("Partial sort: ", range_partial)
+print("Numpy: ", range_np)
+
+#show all arrays 3*1 plot with title
+fig, axs = plt.subplots(1, 3, figsize=(15, 5))
+axs[0].plot(random_array)
+axs[0].set_title('Random array')
+axs[1].plot(sorted_array)
+axs[1].set_title('Sorted array')
+axs[2].plot(partial_sorted_array) 
+axs[2].set_title('Partially sorted array')
+plt.show()  
+
+
+num_trials = 100
 #time all different ways to find interquantile range
-print("time for find_interquartile_range_full_sort: ", timeit.timeit(lambda: find_interquartile_range_full_sort(random_array), number=num_trials)/num_trials+"s")
-print("time for find_interquartile_range_np: ", timeit.timeit(lambda: find_interquartile_range_np(random_array), number=num_trials) / num_trials + "s")
-print("time for find_interquartile_range: ", timeit.timeit(lambda: find_interquartile_range(random_array), number=num_trials) / num_trials + "s")
+print("time for find_interquartile_range_full_sort: ", timeit.timeit(lambda: find_interquartile_range_full_sort(random_array), number=num_trials))
+print("time for find_interquartile_range_np: ", timeit.timeit(lambda: find_interquartile_range_np(random_array), number=num_trials))
+print("time for find_interquartile_range: ", timeit.timeit(lambda: find_interquartile_range(random_array), number=num_trials))
 
 
 print() 
