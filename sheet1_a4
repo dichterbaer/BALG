@@ -97,7 +97,7 @@ def find_interquartile_range_full_sort(array):
 
 
 
-num_entries = 1000
+num_entries = 10000
 random_array = np.random.rand(num_entries)
 sorted_array = random_array.copy()
 partial_sorted_array = random_array.copy()
@@ -121,7 +121,7 @@ axs[2].set_title('Partially sorted array')
 plt.show()  
 
 
-num_trials = 100
+num_trials = 1
 #time all different ways to find interquantile range
 print("time for find_interquartile_range_full_sort: ", timeit.timeit(lambda: find_interquartile_range_full_sort(random_array), number=num_trials))
 print("time for find_interquartile_range_np: ", timeit.timeit(lambda: find_interquartile_range_np(random_array), number=num_trials))
