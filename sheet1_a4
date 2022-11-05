@@ -3,8 +3,30 @@ import timeit
 from matplotlib import pyplot as plt
 import sys
 
-
 sys.setrecursionlimit(400000000)
+
+def quickSort(array, low, high, verbose=False):
+    if low < high:
+        pi = partition(array, low, high, verbose)
+        quickSort(array, low, pi - 1)
+        quickSort(array, pi + 1, high)
+    return
+
+
+def quickSort_partial(array, low, high, quartile=0, verbose=False):
+    if low < high:
+        pi = partition(array, low, high, verbose)
+        if pi < quartile:
+            quickSort_partial(array, pi + 1, high, quartile)
+        else:
+            quickSort_partial(array, low, pi - 1, quartile)
+    # pi = partition(array, low, high, verbose)
+    # if low < quartile:
+    #     quickSort_partial(array, pi + 1, high, quartile, verbose)
+    # elif low >= quartile: 
+    #     quickSort_partial(array, low, pi - 1, quartile, verbose)
+    return
+
 
 def partition(array, low, high, verbose=False):
     pivot = array[high]
@@ -14,78 +36,24 @@ def partition(array, low, high, verbose=False):
         if array[j] <= pivot:
             i = i + 1
             (array[i], array[j]) = (array[j], array[i])
+            if verbose:
+                print(array)
 
     (array[i + 1], array[high]) = (array[high], array[i + 1])
     if verbose:
         print(array)
     return i + 1
 
-def quickSort(array, low, high, quartile=-1, verbose=False):
-    if quartile == -1:
-        if low < high:
-            pi = partition(array, low, high, verbose)
-            quickSort(array, low, pi - 1)
-            quickSort(array, pi + 1, high)
-    else:
-        pi = partition(array, low, high, verbose)
-        if low < quartile:
-            quickSort(array, pi + 1, high, quartile)
-        elif low >= quartile: 
-            quickSort(array, low, pi - 1, quartile)
-    return
-
-
-def quickSort2(array, low, high, quartile=-1, verbose=False):
-    if len(array) <= 1:
-        return
-
-    if low==-1:
-        low = 0
-    if high==-1:
-        high = len(array)-1        
-        
-    if low >= high:
-        return
-       
-    # partition
-    pivot = array[high]
-    i = low - 1
-    for j in range (low,high):
-        if array[j] <= pivot:
-            i += 1
-            array[i],array[j]=array[j],array[i]
-            if verbose: 
-                print(array)
-            
-    array[i+1],array[high]=array[high],array[i+1]
-    pi = i+1
-    
-    if verbose: 
-        print(array)
-
-    if quartile==-1:
-        # normal sort        
-        quickSort2(array,low,pi-1, verbose)  
-        quickSort2(array,pi+1,high, verbose)            
-        return 
-    else:
-        # find quantile
-        if low < quartile:
-            quickSort2(array,pi+1,high, quartile, verbose)
-        elif low >= quartile: 
-            quickSort2(array,low,pi-1, quartile, verbose)
-        return 
-
 
 def find_quartile(array, q):
     if q < 0 or q > 1:
         return 0
     quartile_index = int(len(array)*q)
-    quickSort2(array, 0, len(array)-1, quartile_index, verbose=True)
+    quickSort_partial(array, 0, len(array)-1, quartile_index, verbose=False)
     return array[quartile_index]
 
 
-def find_interquartile_range(array):
+def find_interquartile_range_partial_sort(array):
     q1 = find_quartile(array, 0.25)
     q3 = find_quartile(array, 0.75)
     return q3-q1
@@ -104,18 +72,11 @@ def find_interquartile_range_full_sort(array):
     return q3-q1
 
 
-#create array with all number from 1 to 10 in random order
-random_array = np.random.permutation(np.arange(1, 21))
-print(random_array)
-
+num_entries = 10000
+random_array = np.random.rand(num_entries)
 sorted_array = random_array.copy()
 partial_sorted_array = random_array.copy()
 
-# num_entries = 1000
-# # create array with num_entries ranodom integers 
-# random_array = np.random.randint(0, 100, num_entries)
-# sorted_array = random_array.copy()
-# partial_sorted_array = random_array.copy()
 
 #find quartiles for visual check
 q1y = np.percentile(random_array, 25)
@@ -124,7 +85,7 @@ q1x = int(len(random_array)*0.25)
 q3x = int(len(random_array)*0.75)
 
 
-range_partial = find_interquartile_range(partial_sorted_array)
+range_partial = find_interquartile_range_partial_sort(partial_sorted_array)
 range_full = find_interquartile_range_full_sort(sorted_array)
 range_np = find_interquartile_range_np(random_array)
 
@@ -132,9 +93,6 @@ print("Full sort: ", range_full)
 print("Partial sort: ", range_partial)
 print("Numpy: ", range_np)
 
-
-
-#show all arrays 3*1 plot with title
 fig, axs = plt.subplots(1, 3, figsize=(15, 5))
 axs[0].plot(random_array)
 axs[0].set_title('Random array')
@@ -146,17 +104,14 @@ axs[2].set_title('Partially sorted array')
 axs[2].plot([q1x, q3x], [q1y, q3y], 'ro')
 plt.show()  
 
-# num_entries = 10000
-# random_array = np.random.rand(num_entries)
-# sorted_array = random_array.copy()
-# partial_sorted_array = random_array.copy()
+num_entries = 10000000
+random_array = np.random.rand(num_entries)
+sorted_array = random_array.copy()
+partial_sorted_array = random_array.copy()
 
-# num_trials = 1
-# #time all different ways to find interquantile range
-# print("time for find_interquartile_range_full_sort: ", timeit.timeit(lambda: find_interquartile_range_full_sort(random_array), number=num_trials))
-# print("time for find_interquartile_range_np: ", timeit.timeit(lambda: find_interquartile_range_np(random_array), number=num_trials))
-# print("time for find_interquartile_range: ", timeit.timeit(lambda: find_interquartile_range(random_array), number=num_trials))
-
-
+num_trials = 1
+print("time for find_interquartile_range_np with array length = "+str(num_entries)+" : ", timeit.timeit(lambda: find_interquartile_range_np(random_array), number=num_trials))
+print("time for find_interquartile_range_full_sort with array length = "+str(num_entries)+" : ", timeit.timeit(lambda: find_interquartile_range_full_sort(sorted_array), number=num_trials))
+print("time for find_interquartile_range_partial_sort with array length = "+str(num_entries)+" : ", timeit.timeit(lambda: find_interquartile_range_partial_sort(partial_sorted_array), number=num_trials))
 print() 
 

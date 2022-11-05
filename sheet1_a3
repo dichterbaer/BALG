@@ -31,6 +31,10 @@ def read_image(image_number):
     return img
 
 
+def do_floodfill(img, xstart, ystart, target, replacement, use8neighbors=False):
+    img_temp = img.copy()
+    return floodfill(img_temp, xstart, ystart, target, replacement, use8neighbors)
+
 
 def floodfill(img, xstart, ystart, target, replacement, use8neighbors=False):
     global pixelsfilled
@@ -56,53 +60,73 @@ def floodfill(img, xstart, ystart, target, replacement, use8neighbors=False):
             floodfill(img, xstart + 1, ystart + 1, target, replacement, use8neighbors)
     return img
 
-image_number = 3
+
+def do_scanlinefill(img):
+    img_temp = img.copy()
+    return scanlinefill(img_temp)
+
+
+def scanlinefill(image):
+    linebuffer = []
+    for y in range(image.shape[0]):
+        for x in range(image.shape[1]):
+            if image[y,x] == 255:
+                linebuffer.append(x)
+        if len(linebuffer) > 0:
+            for x in range(linebuffer[0], linebuffer[-1]):
+                image[y,x] = 255
+        linebuffer = []
+    return image
+
+image_number = 2
 img = read_image(image_number)
 img = cv2.bitwise_not(img)
 
 # cv2.imshow('vorher', img)
 # cv2.waitKey()
 
-xstart = 17
-ystart = 17
-img_filled_4_neighbors = img.copy()
-img_filled_8_neighbors = img.copy()
-img_filled_4_neighbors = floodfill(img_filled_4_neighbors, xstart, ystart, 0, 255, use8neighbors=False)
+xstart = 10
+ystart = 10
+img_filled_4_neighbors = do_floodfill(img, xstart, ystart, 0, 255, use8neighbors=False)
 calls4 = calls
 pixelsfilled4 = pixelsfilled
 calls = 0
 pixelsfilled = 0
-img_filled_8_neighbors = floodfill(img_filled_8_neighbors, xstart, ystart, 0, 255, use8neighbors=True)
+img_filled_8_neighbors = do_floodfill(img, xstart, ystart, 0, 255, use8neighbors=True)
 calls8 = calls
 pixelsfilled8 = pixelsfilled
-executions = 100000
+executions = 100
 
-time4 = timeit.timeit('floodfill(img_filled_4_neighbors, xstart, ystart, 0, 255, use8neighbors=False)', globals=globals(), number=executions)/executions
-time8 = timeit.timeit('floodfill(img_filled_8_neighbors, xstart, ystart, 0, 255, use8neighbors=True)', globals=globals(), number=executions)/executions
+image_filled_scanline = do_scanlinefill(img)
+
+time4 = timeit.timeit('do_floodfill(img, xstart, ystart, 0, 255, use8neighbors=False)', globals=globals(), number=executions)/executions
+time8 = timeit.timeit('do_floodfill(img, xstart, ystart, 0, 255, use8neighbors=True)', globals=globals(), number=executions)/executions
+time_scanline = timeit.timeit('do_scanlinefill(img)', globals=globals(), number=executions)/executions
 
 print('timeit: 4 neighbors: ', time4, 's')
 print('timeit: 8 neighbors: ', time8, 's')
+print('timeit: scanline: ', time_scanline, 's')
 
-t1 = time.time()
-for i in range(executions):
-    floodfill(img_filled_4_neighbors, xstart, ystart, 0, 255, use8neighbors=False)
-t2 = time.time()
-time4 = (t2-t1)/executions
+# t1 = time.time()
+# for i in range(executions):
+#     floodfill(img_filled_4_neighbors, xstart, ystart, 0, 255, use8neighbors=False)
+# t2 = time.time()
+# time4 = (t2-t1)/executions
 
-t1 = time.time()
-for i in range(0, executions):
-    floodfill(img_filled_8_neighbors, xstart, ystart, 0, 255, use8neighbors=True)
-t2 = time.time()
-time8 = (t2-t1)/executions
+# t1 = time.time()
+# for i in range(0, executions):
+#     floodfill(img_filled_8_neighbors, xstart, ystart, 0, 255, use8neighbors=True)
+# t2 = time.time()
+# time8 = (t2-t1)/executions
 
-print('time.time: 4 neighbors: ', time4, 's')
-print('time.time: 8 neighbors: ', time8, 's')
+# print('time.time: 4 neighbors: ', time4, 's')
+# print('time.time: 8 neighbors: ', time8, 's')
 
 img_rgb = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
 #mark start point red 
 img_rgb[ystart, xstart] = (255, 0, 0)
 
-fig, ax = plt.subplots(1, 3, figsize=(15, 5))
+fig, ax = plt.subplots(1, 4, figsize=(15, 5))
 fig.suptitle("Floodfill Algorithm recursive", fontsize=15)
 ax[0].imshow(img_rgb)
 ax[0].set_title('Original Image, start point marked red')
@@ -110,5 +134,7 @@ ax[1].imshow(img_filled_4_neighbors, cmap='gray')
 ax[1].set_title('filled with 4 neighbors \n calls = ' + str(calls4) + '; pixels filled = ' + str(pixelsfilled4))
 ax[2].imshow(img_filled_8_neighbors, cmap='gray')
 ax[2].set_title('filled with 8 neighbors \n calls = ' + str(calls8) + '; pixels filled = ' + str(pixelsfilled8))
+ax[3].imshow(image_filled_scanline, cmap='gray')
+ax[3].set_title('filled with scanline \n')
 plt.show()
 

@@ -16,6 +16,18 @@ def trisection(f, left, right, tol):
     return (left + right)/2
 
 
+#procedure which determines the minimum of a non-convex function f in the interval [a, b] using the derivative of f
+def derivative(f, x, tol):
+    dx = x[1]-x[0]
+    y = f(x)
+    dydx = np.gradient(y, dx)
+    #find where the derivative is 0 +- tol
+    minima = np.where(np.abs(dydx) < tol)
+    return x[minima]
+
+
+
+
 
 def f_convex(x):
     alpha = 1
@@ -27,11 +39,17 @@ a = 0
 b = 1
 
 tol = 0.0001
-    
-minimum = trisection(f_convex,a,b,tol)
 
-x = np.linspace(0,1,100)
+x = np.linspace(0,1,int(1/tol))
+minimum = trisection(f_convex,a,b,tol)
+minimum_der = derivative(f_convex,x, tol)
+print('Minimum of convex function: ', minimum)
+print('Minimum of convex function using derivative: ', minimum_der)
+
+
 y = f_convex(x)
+
+#plotting the function and the minimum
 plt.plot(x,y)
 plt.plot(minimum,f_convex(minimum),'ro')
 plt.title("Find Minimum")
