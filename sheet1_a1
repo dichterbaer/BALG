@@ -16,7 +16,7 @@ def trisection(f, left, right, tol):
     return (left + right)/2
 
 
-#procedure which determines the minimum of a non-convex function f in the interval [a, b] using the derivative of f
+#procedure which determines the minimum of function f using the derivative of f
 def derivative(f, x, tol):
     dx = x[1]-x[0]
     y = f(x)

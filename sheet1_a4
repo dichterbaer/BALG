@@ -54,22 +54,25 @@ def find_quartile(array, q):
 
 
 def find_interquartile_range_partial_sort(array):
-    q1 = find_quartile(array, 0.25)
-    q3 = find_quartile(array, 0.75)
-    return q3-q1
+    arr_copy = array.copy()
+    q1 = find_quartile(arr_copy, 0.25)
+    q3 = find_quartile(arr_copy, 0.75)
+    return q3-q1, arr_copy
 
 
 def find_interquartile_range_np(array):
-    q1 = np.percentile(array, 25)
-    q3 = np.percentile(array, 75)
+    arr_copy = array.copy()
+    q1 = np.percentile(arr_copy, 25)
+    q3 = np.percentile(arr_copy, 75)
     return q3-q1
 
 
 def find_interquartile_range_full_sort(array):
-    quickSort(array, 0, len(array)-1)
-    q1 = array[int(len(array)*0.25)]
-    q3 = array[int(len(array)*0.75)]
-    return q3-q1
+    arr_copy = array.copy()
+    quickSort(arr_copy, 0, len(arr_copy)-1)
+    q1 = arr_copy[int(len(arr_copy)*0.25)]
+    q3 = arr_copy[int(len(arr_copy)*0.75)]
+    return q3-q1, arr_copy
 
 
 num_entries = 10000
@@ -85,8 +88,8 @@ q1x = int(len(random_array)*0.25)
 q3x = int(len(random_array)*0.75)
 
 
-range_partial = find_interquartile_range_partial_sort(partial_sorted_array)
-range_full = find_interquartile_range_full_sort(sorted_array)
+range_partial, partial_sorted_array = find_interquartile_range_partial_sort(partial_sorted_array)
+range_full, sorted_array = find_interquartile_range_full_sort(sorted_array)
 range_np = find_interquartile_range_np(random_array)
 
 print("Full sort: ", range_full)
@@ -104,7 +107,7 @@ axs[2].set_title('Partially sorted array')
 axs[2].plot([q1x, q3x], [q1y, q3y], 'ro')
 plt.show()  
 
-num_entries = 10000000
+num_entries = 1000000
 random_array = np.random.rand(num_entries)
 sorted_array = random_array.copy()
 partial_sorted_array = random_array.copy()
