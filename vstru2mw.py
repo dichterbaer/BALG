@@ -22,6 +22,7 @@ import numpy as np
 def vstru2mw(vstru):
     dims = vstru.ndim
     sizs = vstru.shape
+    #print(vstru)
     if dims == 1:
         indj, = np.where(vstru > 0)
         count = len(indj)
@@ -49,7 +50,7 @@ def vstru2mw(vstru):
 # """
 # ==========  test  ===========
 
-# vstru = np.array([0,0,1,2,3,2,1,0,0])
+#vstru = np.array([0,0,1,2,3,2,1,0,0])
 vstru = np.array([[0, 0, 1, 2, 3, 2, 1, 0, 0], [0, 0, 0, 1, 0, 0, 0, 0, 0], [0, 1, 1, 2, 1, 1, 1, 0, 0]])
 
 mw = vstru2mw(vstru)
