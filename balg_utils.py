@@ -95,13 +95,16 @@ def race_functions(func1, func2, num_runs, args1, args2=None):
     '''
     t_func1 = 0
     t_func2 = 0
-    for _ in range(num_runs):
+    for i in range(num_runs):
         if args2 is None:
             t_func1 += timeit.timeit(lambda: func1(*args1), number=1)
             t_func2 += timeit.timeit(lambda: func2(*args1), number=1)
         else:
             t_func1 += timeit.timeit(lambda: func1(*args1), number=1)
             t_func2 += timeit.timeit(lambda: func2(*args2), number=1)
+        #print progress
+        print('Run ' + str(i+1) + ' of ' + str(num_runs) + ' finished')
+
 
     
     t_func1 /= num_runs
