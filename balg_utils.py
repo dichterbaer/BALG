@@ -12,16 +12,51 @@ def fill_filepaths():
     i = 0
     for filename in os.listdir('data'):
         #only add files with image extension
-        if filename.endswith('.jpg' or '.png' or '.jpeg' or '.bmp'  or '.tif' or '.tiff'):
+        #if filename.endswith('.jpg' or '.png' or '.jpeg' or '.bmp'  or '.tif' or '.tiff'):
+        if (filename.endswith('.jpg') or filename.endswith('.png') or filename.endswith('.jpeg') or filename.endswith('.bmp')  or filename.endswith('.tif') or filename.endswith('.tiff')):
             filepaths[i] = os.path.join('data', filename)
             i += 1
 
 
-def read_image(image_number, gray=True):
-    img = cv2.imread(filename=filepaths.get(image_number))
+#docstring
+
+def read_image(image_identifier, gray=True):
+    '''
+    read image from file
+
+    Parameters
+    ----------
+    image_identifier : string or int
+        if string: path to image file
+        if int: index of image in filepaths dictionary
+    gray : bool, optional
+        if True: read image as grayscale. The default is True.
+
+
+    Returns
+    -------
+    img : numpy array
+        image as numpy array
+    '''
+    if type(image_identifier) == str:
+        #check if image exists
+        if os.path.exists(image_identifier):
+            img = cv2.imread(image_identifier)
+        else:
+            print('File not found')
+            return
+    elif type(image_identifier) == int:
+        #check if index is in dictionary
+        if image_identifier in filepaths:
+            img = cv2.imread(filename=filepaths.get(image_identifier))
+        else:
+            print('Index not found')
+            return
     #convert to gray
     if gray:
-        img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+        #check if channels > 1
+        if len(img.shape) > 2:
+            img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
     #if image is to big, half the size until either width or height is smaller than 1500
     while(img.shape[1]> 1500 or img.shape[0]> 1500):
         scale_percent = 50 # percent of original size
