@@ -2,20 +2,28 @@ import timeit
 import numpy as np
 from matplotlib import pyplot as plt
 import cv2
+import os
 
-filepaths = {
-    0: r'data\artificialOrig.jpg',
-    1: r'data\lena.png',
-    2: r'data\mona_lisa.jpg',
-    3: r'data\textur12.png',
-    4: r'data\testimage2_100_100.png',
-}
+#empty dictionary to store filepaths
+filepaths = {}
 
-def read_image(image_number):
+def fill_filepaths():
+    #list all filenames of images in data folder
+    i = 0
+    for filename in os.listdir('data'):
+        #only add files with image extension
+        if filename.endswith('.jpg' or '.png' or '.jpeg' or '.bmp'  or '.tif' or '.tiff'):
+            filepaths[i] = os.path.join('data', filename)
+            i += 1
+
+
+def read_image(image_number, gray=True):
     img = cv2.imread(filename=filepaths.get(image_number))
-    if len(img.shape)>2:
+    #convert to gray
+    if gray:
         img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
-    if(img.shape[1]> 1500 or img.shape[0]> 1500):
+    #if image is to big, half the size until either width or height is smaller than 1500
+    while(img.shape[1]> 1500 or img.shape[0]> 1500):
         scale_percent = 50 # percent of original size
         width = int(img.shape[1] * scale_percent / 100)
         height = int(img.shape[0] * scale_percent / 100)
@@ -60,3 +68,6 @@ def difference_image(img1, img2, name1='img1', name2='img2'):
     plt.title('Difference Image')
     plt.show()
     return diff_img
+
+
+fill_filepaths()
