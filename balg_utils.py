@@ -9,7 +9,7 @@ filepaths = {}
 
 def fill_filepaths():
     '''
-    Fills the filepaths dictionary with the filepaths of the images in the folder 'images'
+    Fills the filepaths dictionary with the filepaths of the images in the folder 'data'
     '''
     #list all filenames of images in data folder
     i = 0
@@ -69,7 +69,7 @@ def read_image(image_identifier, gray=True):
     return img
 
 
-def race_functions(func1, func2, num_runs, args):
+def race_functions(func1, func2, num_runs, args1, args2=None):
     '''
     Compares the runtime of two functions
 
@@ -81,8 +81,10 @@ def race_functions(func1, func2, num_runs, args):
         second function to compare
     num_runs : int
         number of times to run each function
-    args : list
+    args1 : list
         list of arguments to pass to the functions
+    args2 : list, optional
+        list of arguments to pass to the function2 if different arguments are needed. The default is None.
 
     Returns
     -------
@@ -93,9 +95,14 @@ def race_functions(func1, func2, num_runs, args):
     '''
     t_func1 = 0
     t_func2 = 0
-    for i in range(num_runs):
-        t_func1 += timeit.timeit(lambda: func1(*args), number=1)
-        t_func2 += timeit.timeit(lambda: func2(*args), number=1)
+    for _ in range(num_runs):
+        if args2 is None:
+            t_func1 += timeit.timeit(lambda: func1(*args1), number=1)
+            t_func2 += timeit.timeit(lambda: func2(*args1), number=1)
+        else:
+            t_func1 += timeit.timeit(lambda: func1(*args1), number=1)
+            t_func2 += timeit.timeit(lambda: func2(*args2), number=1)
+
     
     t_func1 /= num_runs
     t_func2 /= num_runs
@@ -146,5 +153,5 @@ def difference_image(img1, img2, name1='img1', name2='img2'):
     plt.show()
     return diff_img
 
-
+#fill filepaths dictionary
 fill_filepaths()
