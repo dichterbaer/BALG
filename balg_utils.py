@@ -8,6 +8,9 @@ import os
 filepaths = {}
 
 def fill_filepaths():
+    '''
+    Fills the filepaths dictionary with the filepaths of the images in the folder 'images'
+    '''
     #list all filenames of images in data folder
     i = 0
     for filename in os.listdir('data'):
@@ -18,7 +21,6 @@ def fill_filepaths():
             i += 1
 
 
-#docstring
 
 def read_image(image_identifier, gray=True):
     '''
@@ -68,6 +70,27 @@ def read_image(image_identifier, gray=True):
 
 
 def race_functions(func1, func2, num_runs, args):
+    '''
+    Compares the runtime of two functions
+
+    Parameters
+    ----------
+    func1 : function
+        first function to compare
+    func2 : function
+        second function to compare
+    num_runs : int
+        number of times to run each function
+    args : list
+        list of arguments to pass to the functions
+
+    Returns
+    -------
+    t_func1 : float
+        average runtime of func1
+    t_func2 : float
+        average runtime of func2
+    '''
     t_func1 = 0
     t_func2 = 0
     for i in range(num_runs):
@@ -87,6 +110,25 @@ def race_functions(func1, func2, num_runs, args):
 
 
 def difference_image(img1, img2, name1='img1', name2='img2'):
+    '''
+    Plots the difference between two images
+
+    Parameters
+    ----------
+    img1 : numpy array
+        first image
+    img2 : numpy array
+        second image
+    name1 : string, optional
+        name of first image. The default is 'img1'.
+    name2 : string, optional
+        name of second image. The default is 'img2'.
+
+    Returns
+    -------
+    diff : numpy array
+        difference image
+    '''
     diff_img = np.abs(img1 - img2).astype(np.uint8)
     #print max gray value
     print('Max gray value in difference image: ' + str(np.max(diff_img)))
