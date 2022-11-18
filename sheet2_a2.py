@@ -1,6 +1,8 @@
+import numpy
 import numpy as np
 import cv2
-from vstru2mw import vstru2mw
+import matplotlib.pyplot as plt
+import scipy.ndimage
 
 
 #Aufgabenteil a
@@ -28,11 +30,13 @@ def apply_simple_max(img_in, img_out, s):
 
 def simple_max_filter(img, s):
 
-    if s % 2 == 0: #size Filtermaske (nur ungerade - bei gerade: addiere 1)
-        s += 1
+
+    if s % 2 == 0:
+        raise ValueError('Mask size must be odd.')
 
     (h, w) = np.shape(img) #Höhe, Breite von input image
 
+    #maximum filter erst zeilenweise, dann spaltenweise
     linewise_max_img = np.zeros([h, w]) #Erstelle initial max image mit Nullern
     apply_simple_max(img, linewise_max_img, s) #img auf linewise_max_img
 
@@ -44,8 +48,14 @@ def simple_max_filter(img, s):
 
 img = cv2.imread('/Users/AEMMERICH/Desktop/Graubild.png')
 img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
-#img_max = simple_max_filter(img, 7)
-"""fig = plt.figure()
+img_max = simple_max_filter(img, 21)
+img_cv = scipy.ndimage.maximum_filter(img, 21)
+#difference
+diff = abs(img_max - img_cv)
+print(np.max(np.array(diff)))
+
+
+fig = plt.figure()
 ax = fig.add_subplot(1, 2, 1)
 plt.imshow(img, cmap="gray")
 ax.set_title('Before')
@@ -53,11 +63,23 @@ ax = fig.add_subplot(1, 2, 2)
 plt.imshow(img_max, cmap="gray")
 ax.set_title('After')
 fig.suptitle("Simple Max Filter", fontsize=16)
-plt.show()"""
+
+fig = plt.figure()
+ax = fig.add_subplot(1, 3, 1)
+plt.imshow(img_max, cmap="gray")
+ax.set_title('Simple Maximum Filter')
+ax = fig.add_subplot(1, 3, 2)
+plt.imshow(img_cv, cmap="gray")
+ax.set_title('Maximum Filter von scipy')
+ax = fig.add_subplot(1, 3, 3)
+plt.imshow(diff, cmap="gray")
+ax.set_title('Difference')
+fig.suptitle("Comparison Filters & Difference", fontsize=16)
+plt.show()
 
 
 #Aufgabenteil b
 
-v = np.ndarray([0,0,3,2,1,1,0,0])
-mw = vstru2mw(v)
-print(mw)
+#v = np.ndarray([0,0,3,2,1,1,0,0])
+#mw = vstru2mw(v)
+#print(mw)
