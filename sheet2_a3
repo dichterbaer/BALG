@@ -7,22 +7,7 @@ import time
 
 
 def gils_max_1d(data,w, pad_mode="reflect"):    
-    '''
-    1D Gil-Werman maximum filter 
 
-    Parameters
-    ----------
-    data : numpy.array
-        1D input data.
-    w : int
-        size of filter, uneven number.
-
-    Returns
-    -------
-    maxline : numpy.array
-        result.
-
-    '''
     
     # padding
     data = np.pad(data,w,pad_mode) 
@@ -62,22 +47,7 @@ def gils_max_1d(data,w, pad_mode="reflect"):
 
 
 def gils_max_1d_reshape(img,w):
-    '''
-    serialize image and apply Gil-Werman maximum filter
-
-    Parameters
-    ----------
-    img : numpy.array
-        input image.
-    w : int
-        size of filter, uneven number.
-
-    Returns
-    -------
-    numpy.array
-        maximum filtered image.
-
-    '''    
+ 
     # get shape
     s = np.shape(img)
     nPixels = np.prod(s)
@@ -140,7 +110,7 @@ filepaths = {
     3: r'data\testimage_50_50.png',
     4: r'data\testimage1.png',
     5: r'data\testimage_2_100_100.png',
-    6: r'C:\Users\seege\OneDrive\Dateien\Master\10. Semester\SysBV\Labor\SysBV\data\JC409.jpg'
+    6: r'data\JC409.jpg'
 }
 
 def read_image(image_number):
