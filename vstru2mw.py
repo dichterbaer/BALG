@@ -54,6 +54,6 @@ def vstru2mw(vstru):
 vstru = np.array([[0, 0, 1, 2, 3, 2, 1, 0, 0], [0, 0, 0, 1, 0, 0, 0, 0, 0], [0, 1, 1, 2, 1, 1, 1, 0, 0]])
 
 mw = vstru2mw(vstru)
-print(mw)
+#print(mw)
 # end
 # """
