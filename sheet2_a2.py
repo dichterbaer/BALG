@@ -3,9 +3,10 @@ import numpy as np
 import cv2
 import matplotlib.pyplot as plt
 import scipy.ndimage
+from vstru2mw import vstru2mw
 
 
-#Aufgabenteil a
+#a
 
 def apply_simple_max(img_in, img_out, s):
     (h, w) = np.shape(img_in) #Höhe, Breite
@@ -46,7 +47,7 @@ def simple_max_filter(img, s):
     img_result = np.transpose(img_result)
     return img_result
 
-img = cv2.imread('/Users/AEMMERICH/Desktop/Graubild.png')
+img = cv2.imread('data/baum_grau.png')
 img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
 img_max = simple_max_filter(img, 21)
 img_cv = scipy.ndimage.maximum_filter(img, 21)
@@ -54,8 +55,7 @@ img_cv = scipy.ndimage.maximum_filter(img, 21)
 diff = abs(img_max - img_cv)
 print(np.max(np.array(diff)))
 
-
-fig = plt.figure()
+'''fig = plt.figure()
 ax = fig.add_subplot(1, 2, 1)
 plt.imshow(img, cmap="gray")
 ax.set_title('Before')
@@ -76,10 +76,11 @@ plt.imshow(diff, cmap="gray")
 ax.set_title('Difference')
 fig.suptitle("Comparison Filters & Difference", fontsize=16)
 plt.show()
+'''
 
 
-#Aufgabenteil b
+#b
 
-#v = np.ndarray([0,0,3,2,1,1,0,0])
-#mw = vstru2mw(v)
-#print(mw)
+v = np.array([0,0,3,2,1,1,0,0])
+mw = vstru2mw(v)
+print(mw)
