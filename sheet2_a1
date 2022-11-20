@@ -111,6 +111,7 @@ def entropy_ala_huang_vnormal(img, mask_in):
     # check if the mask size is odd
     if mask_in.shape[0] % 2 == 0:
         raise ValueError('Mask size must be odd')
+    LUT = gen_LUT_plog2p(mask_in)
     mask = vstru2mw(mask_in)
     # create a new image with the same size as the input image
     entropy_img = np.zeros(img.shape)
@@ -126,7 +127,7 @@ def entropy_ala_huang_vnormal(img, mask_in):
         #iterate over the line and ignore the border pixels
         for i in range(mask.shape[0]//2, img.shape[1] - mask.shape[0]//2):
             #calculate the entropy of the histogram
-            entropy_img[j, i] = calc_entropy_woLUT(hist)
+            entropy_img[j, i] = calc_entropy_wLUT(hist, LUT)
             #update the histogram for the next iteration
             update_histogram2(img, hist, i, j, mask)
     return entropy_img
@@ -176,7 +177,7 @@ def init_histogram2(img, hist, x, y, filter):
     #iterate over the mask and fill histogram
     k=0
     for j in range(int(-filter[k][2]), int(filter[k][2]) + 1):
-        for i in range(int(filter[k][2]), int(filter[k][2]+filter[k][1])):
+        for i in range(-int(filter[k][0]-filter[k][2]), int(filter[k][0]-filter[k][2])+1):
             hist[img[y+j, x+i]] += 1
         k+=1
     return
@@ -187,8 +188,8 @@ def update_histogram2(img, hist, x, y, filter):
     k=0
     for j in range(int(-filter[k][2]), int(filter[k][2]) + 1):
         hist[img[ y + j, x - (int(filter[k][1]//2))]] -= 1
-        if(x + (int(filter[k][1]//2)) < img.shape[0]):
-            hist[img[y + j, x + (int(filter[k][1]//2))]] += 1
+        if(x + (int(filter[k][1]//2))+1 < img.shape[0]):
+            hist[img[y + j, x + (int(filter[k][1]//2))+1]] += 1
         k+=1
     return
 
@@ -229,17 +230,19 @@ testarray = np.array(testarray).astype(np.uint8)
 
 
 
-mask = disk(3)
+mask = disk(2)
 
-img = testarray
-# img_entropy_scipy = entropy(img, mask)
-# img_entropy_vnormal = entropy_ala_huang_vnormal(img, mask)
-# difference_image(img_entropy_scipy, img_entropy_vnormal, 'scipy', 'vnormal')
+img = read_image(2)
+img_entropy_scipy = entropy(img, mask)
+img_entropy_vnormal = entropy_ala_huang_vnormal(img, mask)
+difference_image(img_entropy_scipy, img_entropy_vnormal, 'scipy', 'vnormal')
 
 
 img_entropy_scipy = entropy(img, square(3))
 img_entropy_lut = entropy_ala_huang_LUT(img, 3)
 difference_image(img_entropy_scipy, img_entropy_lut, 'scipy', 'entropy ala huang')
+
+
 
 # #calculate the difference between the both results
 # diff = median_huang_img - median_cv2_img
