@@ -166,7 +166,7 @@ def update_histogram(img, hist, x, y, s):
     #remove values from the histogram that are not in the mask anymore
     for j in range(-(s // 2), s // 2 + 1):
         hist[img[ y + j, x - s // 2]] -= 1
-        if(x + s // 2 + 1 < img.shape[0]):
+        if(x + s // 2 + 1 < img.shape[1]):
             hist[img[y + j, x + s // 2 + 1]] += 1
     return
 
@@ -188,7 +188,7 @@ def update_histogram2(img, hist, x, y, filter):
     k=0
     for j in range(int(-filter[k][2]), int(filter[k][2]) + 1):
         hist[img[ y + j, x - (int(filter[k][1]//2))]] -= 1
-        if(x + (int(filter[k][1]//2))+1 < img.shape[0]):
+        if(x + (int(filter[k][1]//2))+1 < img.shape[1]):
             hist[img[y + j, x + (int(filter[k][1]//2))+1]] += 1
         k+=1
     return
