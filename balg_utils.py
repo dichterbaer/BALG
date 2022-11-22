@@ -85,6 +85,8 @@ def race_functions(func1, func2, num_runs, args1, args2=None, verbose = False):
         list of arguments to pass to the functions
     args2 : list, optional
         list of arguments to pass to the function2 if different arguments are needed. The default is None.
+    verbose : boolean, optional
+        if True: show progress and result times. The default is False.
 
     Returns
     -------
