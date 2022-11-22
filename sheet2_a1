@@ -107,10 +107,10 @@ def entropy_ala_huang(img, s):
     return entropy_img
 
 
-def entropy_ala_huang_vnormal(img, mask_in):
-    # check if the mask size is odd
-    if mask_in.shape[0] % 2 == 0:
-        raise ValueError('Mask size must be odd')
+def entropy_ala_huang_vnormal(img, mask_in, use_LUT = True):
+    # # check if the mask size is odd
+    # if mask_in.shape[0] % 2 == 0:
+    #     raise ValueError('Mask size must be odd')
     LUT = gen_LUT_plog2p(mask_in)
     mask = vstru2mw(mask_in)
     # create a new image with the same size as the input image
@@ -123,13 +123,16 @@ def entropy_ala_huang_vnormal(img, mask_in):
     #iterate over the image lines and ignore the border pixels
     for j in range(int(mask[0][0]), img.shape[0] - int(mask[0][0])):
         #initialize the histogram for the line
-        init_histogram2(img, hist, int(mask[0][0]), j, mask)
+        init_histogram_v_normal(img, hist, int(mask[0][0]), j, mask)
         #iterate over the line and ignore the border pixels
         for i in range(mask.shape[0]//2, img.shape[1] - mask.shape[0]//2):
             #calculate the entropy of the histogram
-            entropy_img[j, i] = calc_entropy_wLUT(hist, LUT)
+            if use_LUT:
+                entropy_img[j, i] = calc_entropy_wLUT(hist, LUT)
+            else:
+                entropy_img[j, i] = calc_entropy_woLUT(hist)
             #update the histogram for the next iteration
-            update_histogram2(img, hist, i, j, mask)
+            update_histogram_v_normal(img, hist, i, j, mask)
     return entropy_img
 
 
@@ -138,7 +141,7 @@ def calc_entropy_wLUT(hist, LUT):
     #calculate the entropy of the histogram 
     hist = hist[hist > 0].astype(np.int64)
     #calc entropy with LUT
-    entr = - np.sum(LUT[hist-1])
+    entr = np.sum(LUT[hist-1])
     return entr
 
 
@@ -147,9 +150,19 @@ def calc_entropy_woLUT(hist):
     # hist = hist / np.sum(hist)
     hist = hist[hist > 0].astype(np.int64)
     #calc entropy without LUT
-    entr = -np.sum(hist * np.log2(hist))
+    pi = hist / np.sum(hist)
+    entr = np.sum(pi * np.log2(1/pi))
     return entr
 
+
+def gen_LUT_plog2p(mask):
+    #count non zero elements in mask
+    num_entries = np.sum(mask)
+    #create LUT
+    i = np.arange(1,num_entries+1,1)        
+    pi = i/num_entries
+    LUT = pi*np.log2(1/pi)
+    return LUT
 
 
 def init_histogram(img, hist, x, y, s):
@@ -171,7 +184,7 @@ def update_histogram(img, hist, x, y, s):
     return
 
 
-def init_histogram2(img, hist, x, y, filter):
+def init_histogram_v_normal(img, hist, x, y, filter):
     #fill histogramm with 0
     hist.fill(0)
     #iterate over the mask and fill histogram
@@ -183,7 +196,7 @@ def init_histogram2(img, hist, x, y, filter):
     return
 
 
-def update_histogram2(img, hist, x, y, filter):
+def update_histogram_v_normal(img, hist, x, y, filter):
     #update histogram
     k=0
     for j in range(int(-filter[k][2]), int(filter[k][2]) + 1):
@@ -192,19 +205,6 @@ def update_histogram2(img, hist, x, y, filter):
             hist[img[y + j, x + (int(filter[k][1]//2))+1]] += 1
         k+=1
     return
-
-
-
-
-
-def gen_LUT_plog2p(mask):
-    #count non zero elements in mask
-    num_entries = np.sum(mask)
-    #create LUT
-    i = np.arange(1,num_entries+1,1)        
-    pi = i/num_entries
-    LUT = pi*np.log2(1/pi)
-    return LUT
 
 
 # create median image with cv2.medianBlur
@@ -222,71 +222,70 @@ testarray = [[10,5,6,20,4,10,8],
             [18,4,3,6,8,10,12]]
 
 testarray = np.array(testarray).astype(np.uint8)
-# #testarray = read_image(0)
-# median_huang_img = median_huang(testarray, 3)
-# median_cv2_img = median_cv2(testarray, 3)
-
-
-
-
 
 mask = disk(2)
 
-img = read_image(2)
-img_entropy_scipy = entropy(img, mask)
-img_entropy_vnormal = entropy_ala_huang_vnormal(img, mask)
-difference_image(img_entropy_scipy, img_entropy_vnormal, 'scipy', 'vnormal')
+img = read_image(r'data\testimage_50_50.png')
 
 
-img_entropy_scipy = entropy(img, square(3))
-img_entropy_lut = entropy_ala_huang_LUT(img, 3)
-difference_image(img_entropy_scipy, img_entropy_lut, 'scipy', 'entropy ala huang')
+# race_functions(entropy, entropy_ala_huang_vnormal, 5, (img, mask), (img, mask, True))
+
+# race_functions(entropy_ala_huang_vnormal, entropy_ala_huang_vnormal, 5, (img, mask, False), (img, mask, True))
+
+# img_entropy_scipy = entropy(img, mask)
+# img_entropy_vnormal = entropy_ala_huang_vnormal(img, mask)
+# difference_image(img_entropy_scipy, img_entropy_vnormal, 'scipy', 'vnormal')
+
+filter_sizes = []
+times_wLut = []
+times_woLut = []
+num_runs = 1
+for mask_size in range(2, 8):
+    mask = disk(mask_size)
+    print('Maskengrröße: ' + str(mask_size))
+    t_wLut, t_woLut = race_functions(entropy_ala_huang_vnormal, entropy_ala_huang_vnormal, num_runs, (img, mask, True), (img, mask, False), verbose=True)
+    times_wLut.append(times_wLut)
+    times_woLut.append(times_woLut)
+    filter_sizes.append(mask_size)
 
 
-
-# #calculate the difference between the both results
-# diff = median_huang_img - median_cv2_img
-# #show the both median images and the difference
-# plt.figure(figsize=(15, 15))
-# plt.subplot(1, 3, 1)
-# plt.imshow(median_huang_img, cmap='gray')
-# plt.title('Median with Huan\'s Algorithm')
-# plt.subplot(1, 3, 2)
-# plt.imshow(median_cv2_img, cmap='gray')
-# plt.title('Median with cv2.medianBlur')
-# plt.subplot(1, 3, 3)
-# plt.imshow(diff, cmap='gray')
-# plt.title('Difference')
+# plt.plot(filter_sizes, times_wLut, '*', filter_sizes, times_woLut, 'x')
+# plt.xlabel('Größe Filtermaske')
+# plt.ylabel('Ausführungsdauer in s')
+# plt.legend('with LUT', 'without LUT')
 # plt.show()
 
-# entropy_with_LUT = entropy_ala_huang_LUT(testarray, 3)
-# entropy_wo_LUT = entropy_ala_huang(testarray, 3)
-# difference_image(entropy_with_LUT, entropy_wo_LUT, 'Entropy with LUT', 'Entropy without LUT')
 
 
+# filter_sizes = []
+# times_wLut = []
+# times_scipy = []
+# num_runs = 1
+# for mask_size in range(2, 9):
+#     mask = disk(mask_size)
+#     print('Maskengrröße: ' + str(mask_size))
+#     t_wLut, t_woLut = race_functions(entropy_ala_huang_vnormal, entropy, num_runs, (img, mask, True), (img, mask), verbose=True)
+#     times_wLut.append(times_wLut)
+#     times_scipy.append(times_woLut)
+#     filter_sizes.append(mask_size)
 
-# entropy_huang_img = median_entropy_ala_huang_LUT(testarray, 3)
-# entropy_huang_img_woLUT = median_entropy_ala_huang(testarray, 3)
-# entropy_cv2_img = entropy(testarray, square(3))
 
-# diff_w_wo_LUT = np.abs(entropy_huang_img_woLUT- entropy_huang_img).astype(np.uint8)
-# #print maximum difference
-# print('Maximum gray value difference in Entropy Calculation with and without LUT: ', np.max(diff_w_wo_LUT))
-
-# #calculate the difference between the both results
-# diff = (entropy_huang_img - entropy_cv2_img).astype(np.uint8)
-# #show the both median images and the difference
-# plt.figure(figsize=(15, 10))
-# plt.subplot(1, 5, 1)
-# plt.imshow(entropy_huang_img, cmap='gray')
-# plt.title('Entropy with Huan\'s Algorithm and LUT')
-# plt.subplot(1, 5, 3)
-# plt.imshow(entropy_cv2_img, cmap='gray')
-# plt.title('Entropy with skimage.filters.rank.entropy')
-# plt.subplot(1, 5, 4)
-# plt.imshow(diff, cmap='gray')
-# plt.title('Difference')
+# plt.plot(filter_sizes, times_wLut, '*', filter_sizes, times_scipy, 'x')
+# plt.xlabel('Größe Filtermaske')
+# plt.ylabel('Ausführungsdauer in s')
+# plt.legend('own implementation with LUT', 'scipy')
 # plt.show()
+
+
+
+# img_entropy_vnormal_wLut = entropy_ala_huang_vnormal(testarray, mask, True)
+# img_entropy_vnormal_woLut = entropy_ala_huang_vnormal(testarray, mask, False)
+# img_entropy_scipy = entropy(testarray, mask)
+# difference_image(img_entropy_vnormal_wLut, img_entropy_vnormal_woLut, 'w LUT', 'wo LUT')
+
+
+
+
 
 
 
