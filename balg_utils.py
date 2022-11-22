@@ -144,15 +144,19 @@ def difference_image(img1, img2, name1='img1', name2='img2'):
     print('Max gray value in difference image: ' + str(np.max(diff_img)))
     #show both images and the difference
     plt.figure(figsize=(15, 10))
-    plt.subplot(1,3,1)
+    plt.subplot(1,4,1)
     plt.imshow(img1, cmap='gray')
     plt.title(name1)
-    plt.subplot(1,3,2)
+    plt.subplot(1,4,2)
     plt.imshow(img2, cmap='gray')
     plt.title(name2)
-    plt.subplot(1,3,3)
+    plt.subplot(1,4,3)
     plt.imshow(diff_img, cmap='gray')
     plt.title('Difference Image')
+    #show difference image scaled to 0-255
+    plt.subplot(1,4,4)
+    plt.imshow(diff_img, cmap='gray', vmin=0, vmax=255)
+    plt.title('Difference Image, \nscaled to 0-255')
     plt.show()
     return diff_img
 
