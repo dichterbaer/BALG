@@ -113,12 +113,12 @@ def race_functions(func1, func2, num_runs, args1, args2=None, verbose = False):
     t_func1 /= num_runs
     t_func2 /= num_runs
     #round to 3 significant digits
-    t_func1 = np.format_float_positional(t_func1, precision=4, unique=False, fractional=False, trim='k')
-    t_func2 = np.format_float_positional(t_func2, precision=4, unique=False, fractional=False, trim='k')
+    t_func1_s = np.format_float_positional(t_func1, precision=4, unique=False, fractional=False, trim='k')
+    t_func2_s = np.format_float_positional(t_func2, precision=4, unique=False, fractional=False, trim='k')
     #print results
     if verbose:
-        print('Mean Execution Time for '+ func1.__name__+' : ' + t_func1 + 's, with ' + str(num_runs) + ' runs')
-        print('Mean Execution Time for '+ func2.__name__+' : ' + t_func2 + 's, with ' + str(num_runs) + ' runs')
+        print('Mean Execution Time for '+ func1.__name__+' : ' + t_func1_s + 's, with ' + str(num_runs) + ' runs')
+        print('Mean Execution Time for '+ func2.__name__+' : ' + t_func2_s + 's, with ' + str(num_runs) + ' runs')
     return  t_func1, t_func2
 
 
