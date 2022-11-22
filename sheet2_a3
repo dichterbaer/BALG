@@ -92,7 +92,7 @@ def gils_max_2d(img,s,pad_mode="reflect"):
 
   
 img=read_image(1)   
-problem=4
+problem=5
 
 if problem == 1:
     #a)
@@ -132,6 +132,7 @@ if problem == 3:
     result = gils_max_2d(img,21)
     result_scipy = flt.maximum_filter(img,21)
     diff=difference_image(result,result_scipy,"Gil Max","Scipy Max")
+    race_functions(gils_max_2d,flt.maximum_filter,10,[img,21],[img,21])
 
 
 if problem == 4:
@@ -172,38 +173,56 @@ if problem == 4:
     plt.ylabel("Durchführungsdauer in ms")
     plt.legend(['My GIL-Max', 'Scipy-Maximum'])
 
-    # plot both
-    fig = plt.figure()
-    ax = fig.add_subplot(3, 3, 2)
-    plt.imshow(result_arr[0],cmap="gray")
-    ax.set_title("Original")
-    ax = fig.add_subplot(3, 3, 4)
-    plt.imshow(result_arr[2],cmap="gray")
-    ax.set_title("My Gil "+np.str(filter_sz_arr[2]))
-    ax = fig.add_subplot(3, 3, 5)
-    plt.imshow(result_arr[(int)(arr_size/2)],cmap="gray")
-    ax.set_title("My Gil "+np.str(filter_sz_arr[(int)(arr_size/2)]))
-    ax = fig.add_subplot(3, 3, 6)
-    plt.imshow(result_arr[arr_size-1],cmap="gray")
-    ax.set_title("My Gil "+np.str(filter_sz_arr[arr_size-1]))
+    # # plot both
+    # fig = plt.figure()
+    # ax = fig.add_subplot(3, 3, 2)
+    # plt.imshow(result_arr[0],cmap="gray")
+    # ax.set_title("Original")
+    # ax = fig.add_subplot(3, 3, 4)
+    # plt.imshow(result_arr[2],cmap="gray")
+    # ax.set_title("My Gil "+np.str(filter_sz_arr[2]))
+    # ax = fig.add_subplot(3, 3, 5)
+    # plt.imshow(result_arr[(int)(arr_size/2)],cmap="gray")
+    # ax.set_title("My Gil "+np.str(filter_sz_arr[(int)(arr_size/2)]))
+    # ax = fig.add_subplot(3, 3, 6)
+    # plt.imshow(result_arr[arr_size-1],cmap="gray")
+    # ax.set_title("My Gil "+np.str(filter_sz_arr[arr_size-1]))
 
-    ax = fig.add_subplot(3, 3, 7)
-    plt.imshow(result_arr_scipy[2],cmap="gray")
-    ax.set_title("Scipy "+np.str(filter_sz_arr[2]))
-    ax = fig.add_subplot(3, 3, 8)
-    plt.imshow(result_arr_scipy[int(arr_size/2)],cmap="gray")
-    ax.set_title("Scipy "+np.str(filter_sz_arr[(int)(arr_size/2)]))
-    ax = fig.add_subplot(3, 3, 9)
-    plt.imshow(result_arr_scipy[arr_size-1],cmap="gray")
-    ax.set_title("Scipy "+np.str(filter_sz_arr[arr_size-1]))
+    # ax = fig.add_subplot(3, 3, 7)
+    # plt.imshow(result_arr_scipy[2],cmap="gray")
+    # ax.set_title("Scipy "+np.str(filter_sz_arr[2]))
+    # ax = fig.add_subplot(3, 3, 8)
+    # plt.imshow(result_arr_scipy[int(arr_size/2)],cmap="gray")
+    # ax.set_title("Scipy "+np.str(filter_sz_arr[(int)(arr_size/2)]))
+    # ax = fig.add_subplot(3, 3, 9)
+    # plt.imshow(result_arr_scipy[arr_size-1],cmap="gray")
+    # ax.set_title("Scipy "+np.str(filter_sz_arr[arr_size-1]))
 
-    fig.suptitle("Durchführungsdauer in Abhängigkeit zur Maskengröße", fontsize = 16)
+    # fig.suptitle("Durchführungsdauer in Abhängigkeit zur Maskengröße", fontsize = 16)
 
 
     plt.show()
-    print("fertig")
 
+if problem == 5:
 
+    num_runs=10
 
+    time_arr = []
+    filter_sz_arr = []
+    time_arr_scipy = []
+    time_arr.append(0.0)
+    filter_sz_arr.append(0)
+    time_arr_scipy.append(0.0)
 
-    
+    for filter_size in range(3,69,3):
+        
+        [time_gil,time_scpy]=race_functions(gils_max_2d,flt.maximum_filter,num_runs,[img,filter_size],[img,filter_size])
+        filter_sz_arr.append(filter_size)
+        time_arr.append(time_gil)
+        time_arr_scipy.append(time_scpy)
+
+    plt.plot(filter_sz_arr,time_arr,'o',filter_sz_arr,time_arr_scipy,'r*')
+    plt.xlabel("Größe Filtermaske")
+    plt.ylabel("Durchführungsdauer in ms")
+    plt.legend(['My GIL-Max', 'Scipy-Maximum'])
+    plt.show()
