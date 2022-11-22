@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import scipy.ndimage.filters as flt
 import cv2
 import time
-from balg_utils import race_functions, read_image, difference_image,race_functions_2
+from balg_utils import race_functions, read_image, difference_image
 
 
 
@@ -205,7 +205,7 @@ if problem == 4:
 
 if problem == 5:
     img=read_image(2)     
-    num_runs=5
+    num_runs=6
 
     time_arr = []
     filter_sz_arr = []
