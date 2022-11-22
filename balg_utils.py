@@ -69,7 +69,7 @@ def read_image(image_identifier, gray=True):
     return img
 
 
-def race_functions(func1, func2, num_runs, args1, args2=None):
+def race_functions(func1, func2, num_runs, args1, args2=None, verbose = False):
     '''
     Compares the runtime of two functions
 
@@ -103,7 +103,8 @@ def race_functions(func1, func2, num_runs, args1, args2=None):
             t_func1 += timeit.timeit(lambda: func1(*args1), number=1)
             t_func2 += timeit.timeit(lambda: func2(*args2), number=1)
         #print progress
-        print('Run ' + str(i+1) + ' of ' + str(num_runs) + ' finished')
+        if verbose: 
+            print('Run ' + str(i+1) + ' of ' + str(num_runs) + ' finished')
 
 
     
@@ -113,8 +114,9 @@ def race_functions(func1, func2, num_runs, args1, args2=None):
     t_func1 = np.format_float_positional(t_func1, precision=4, unique=False, fractional=False, trim='k')
     t_func2 = np.format_float_positional(t_func2, precision=4, unique=False, fractional=False, trim='k')
     #print results
-    print('Mean Execution Time for '+ func1.__name__+' : ' + t_func1 + 's, with ' + str(num_runs) + ' runs')
-    print('Mean Execution Time for '+ func2.__name__+' : ' + t_func2 + 's, with ' + str(num_runs) + ' runs')
+    if verbose:
+        print('Mean Execution Time for '+ func1.__name__+' : ' + t_func1 + 's, with ' + str(num_runs) + ' runs')
+        print('Mean Execution Time for '+ func2.__name__+' : ' + t_func2 + 's, with ' + str(num_runs) + ' runs')
     return  t_func1, t_func2
 
 
