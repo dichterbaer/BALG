@@ -225,56 +225,56 @@ testarray = np.array(testarray).astype(np.uint8)
 
 mask = disk(2)
 
-img = read_image(r'data\testimage_50_50.png')
+img = read_image(r'data\artificialOrig.jpg')
 
 
-# race_functions(entropy, entropy_ala_huang_vnormal, 5, (img, mask), (img, mask, True))
+img_entropy_scipy = entropy(img, mask)
+img_entropy_vnormal = entropy_ala_huang_vnormal(img, mask)
+difference_image(img_entropy_scipy, img_entropy_vnormal, 'scipy', 'vnormal')
 
-# race_functions(entropy_ala_huang_vnormal, entropy_ala_huang_vnormal, 5, (img, mask, False), (img, mask, True))
-
-# img_entropy_scipy = entropy(img, mask)
-# img_entropy_vnormal = entropy_ala_huang_vnormal(img, mask)
-# difference_image(img_entropy_scipy, img_entropy_vnormal, 'scipy', 'vnormal')
+# img_entropy_vnormal = entropy_ala_huang_vnormal(img, disk(21))
+# img_entropy_scipy = entropy(img, disk(21))
+# difference_image(img_entropy_vnormal, img_entropy_scipy, 'vnormal', 'scipy')
 
 filter_sizes = []
 times_wLut = []
 times_woLut = []
 num_runs = 1
-for mask_size in range(2, 8):
+for mask_size in range(2, 10):
     mask = disk(mask_size)
-    print('Maskengrröße: ' + str(mask_size))
+    print('Maskengröße: ' + str(mask_size))
     t_wLut, t_woLut = race_functions(entropy_ala_huang_vnormal, entropy_ala_huang_vnormal, num_runs, (img, mask, True), (img, mask, False), verbose=True)
-    times_wLut.append(times_wLut)
-    times_woLut.append(times_woLut)
+    times_wLut.append(t_wLut)
+    times_woLut.append(t_woLut)
     filter_sizes.append(mask_size)
 
 
-# plt.plot(filter_sizes, times_wLut, '*', filter_sizes, times_woLut, 'x')
-# plt.xlabel('Größe Filtermaske')
-# plt.ylabel('Ausführungsdauer in s')
-# plt.legend('with LUT', 'without LUT')
-# plt.show()
+plt.plot(filter_sizes, times_wLut, '*', filter_sizes, times_woLut, 'x')
+plt.xlabel('Größe Filtermaske in Pixel')
+plt.ylabel('Ausführungsdauer in s')
+plt.legend(['with LUT', 'without LUT'])
+plt.show()
 
 
 
-# filter_sizes = []
-# times_wLut = []
-# times_scipy = []
-# num_runs = 1
-# for mask_size in range(2, 9):
-#     mask = disk(mask_size)
-#     print('Maskengrröße: ' + str(mask_size))
-#     t_wLut, t_woLut = race_functions(entropy_ala_huang_vnormal, entropy, num_runs, (img, mask, True), (img, mask), verbose=True)
-#     times_wLut.append(times_wLut)
-#     times_scipy.append(times_woLut)
-#     filter_sizes.append(mask_size)
+filter_sizes = []
+times_wLut = []
+times_scipy = []
+num_runs = 2
+for mask_size in range(2, 10):
+    mask = disk(mask_size)
+    print('Maskengröße: ' + str(mask_size))
+    t_wLut, t_scipy = race_functions(entropy_ala_huang_vnormal, entropy, num_runs, (img, mask, True), (img, mask), verbose=True)
+    times_wLut.append(t_wLut)
+    times_scipy.append(t_scipy)
+    filter_sizes.append(mask_size)
 
 
-# plt.plot(filter_sizes, times_wLut, '*', filter_sizes, times_scipy, 'x')
-# plt.xlabel('Größe Filtermaske')
-# plt.ylabel('Ausführungsdauer in s')
-# plt.legend('own implementation with LUT', 'scipy')
-# plt.show()
+plt.plot(filter_sizes, times_wLut, '*', filter_sizes, times_scipy, 'x')
+plt.xlabel('Größe Filtermaske in Pixel')
+plt.ylabel('Ausführungsdauer in s')
+plt.legend(['own implementation with LUT', 'scipy'])
+plt.show()
 
 
 
