@@ -191,6 +191,7 @@ def init_histogram_v_normal(img, hist, x, y, filter):
     k=0
     for j in range(int(-filter[k][2]), int(filter[k][2]) + 1):
         for i in range(-int(filter[k][0]-filter[k][2]), int(filter[k][0]-filter[k][2])+1):
+            #nicht pixelweise durchgehen sondern mit np(:)
             hist[img[y+j, x+i]] += 1
         k+=1
     return
