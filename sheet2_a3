@@ -204,8 +204,8 @@ if problem == 4:
     plt.show()
 
 if problem == 5:
-
-    num_runs=10
+    img=read_image(2)     
+    num_runs=6
 
     time_arr = []
     filter_sz_arr = []
@@ -215,8 +215,7 @@ if problem == 5:
     time_arr_scipy.append(0.0)
 
     for filter_size in range(3,69,3):
-        
-        [time_gil,time_scpy]=race_functions(gils_max_2d,flt.maximum_filter,num_runs,[img,filter_size],[img,filter_size])
+        [time_gil,time_scpy]=race_functions(gils_max_2d,flt.maximum_filter,num_runs,(img,filter_size),(img,filter_size))
         filter_sz_arr.append(filter_size)
         time_arr.append(time_gil)
         time_arr_scipy.append(time_scpy)
