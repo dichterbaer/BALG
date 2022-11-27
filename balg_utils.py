@@ -15,7 +15,6 @@ def fill_filepaths():
     i = 0
     for filename in os.listdir('data'):
         #only add files with image extension
-        #if filename.endswith('.jpg' or '.png' or '.jpeg' or '.bmp'  or '.tif' or '.tiff'):
         if (filename.endswith('.jpg') or filename.endswith('.png') or filename.endswith('.jpeg') or filename.endswith('.bmp')  or filename.endswith('.tif') or filename.endswith('.tiff')):
             filepaths[i] = os.path.join('data', filename)
             i += 1
@@ -123,6 +122,48 @@ def race_functions(func1, func2, num_runs, args1, args2=None, verbose = False):
 
 
 
+def race_functions2(funcArray, argArray, num_runs, verbose = False):
+    '''
+    Compares the runtime of two functions
+
+    Parameters
+    ----------
+    funcArray : list
+        list of functions to compare
+    argArray : list
+        list of lists of arguments to pass to the functions
+    num_runs : int
+        number of times to run each function
+    verbose : boolean, optional
+        if True: show progress and result times. The default is False.
+
+    Returns
+    -------
+    times : list
+        list of average runtimes of the functions
+    '''
+    times = np.zeros(len(funcArray))
+    for i in range(num_runs):
+        for func in funcArray:
+            times[funcArray.index(func)] += timeit.timeit(lambda: func(*argArray[funcArray.index(func)]), number=1)
+        #print progress
+        if verbose: 
+            print('Run ' + str(i+1) + ' of ' + str(num_runs) + ' finished')
+    
+    times /= num_runs
+    times_str = []
+    #round to 3 significant digits
+    for t in times:
+        times_str.append(np.format_float_positional(t, precision=4, unique=False, fractional=False, trim='k'))
+    #print results
+    if verbose:
+        for func in funcArray:
+            print('Mean Execution Time for '+ func.__name__+' : ' + times_str[funcArray.index(func)] + 's, with ' + str(num_runs) + ' runs')
+    return  times
+
+
+
+
 def difference_image(img1, img2, name1='img1', name2='img2'):
     '''
     Plots the difference between two images
@@ -156,7 +197,7 @@ def difference_image(img1, img2, name1='img1', name2='img2'):
     plt.title(name2)
     plt.subplot(1,4,3)
     plt.imshow(diff_img, cmap='gray')
-    plt.title('Difference Image')
+    plt.title('Difference Image, \nsclaled from {} to {}'.format(np.min(diff_img), np.max(diff_img)))
     #show difference image scaled to 0-255
     plt.subplot(1,4,4)
     plt.imshow(diff_img, cmap='gray', vmin=0, vmax=255)

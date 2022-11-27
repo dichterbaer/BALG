@@ -92,12 +92,14 @@ def gils_max_2d(img,s,pad_mode="reflect"):
 
   
 img=read_image(1)   
-problem=5
+problem=1
 
 if problem == 1:
     #a)
 
-    data=np.random.randint(255, size=(30))
+    #data=np.random.randint(255, size=(30))
+    #fill data with random numbers between 0 and 255
+    data = [5, 7, 157, 20, 25, 255, 0, 254, 10, 100, 100, 100, 50, 50, 51, 52, 53, 52, 51, 51]
     k=7
     maxdata = gils_max_1d(data, k)
     maxdata2 = flt.maximum_filter1d(data,k)
@@ -105,6 +107,8 @@ if problem == 1:
     print(data)
     print("Maximum Gil:")
     print(maxdata)
+    print("Maximum scipy:")
+    print(maxdata2)
     print("Abweichung Gil zu scipy:")
     print(maxdata2-maxdata)
 
