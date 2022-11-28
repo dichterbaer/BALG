@@ -11,102 +11,6 @@ from skimage.color import rgb2hsv, rgb2gray, rgb2yuv
 from balg_utils import race_functions, difference_image, read_image, race_functions2
 
 
-
-#class for circular mask
-class CircularMask:
-    def __init__(self, radius):
-        self.radius = radius
-        self.mask = self.create_mask()
-        self.mask_size = self.mask.shape[0]
-        self.mask_center = self.mask_size // 2
-        self.mask_sum = np.sum(self.mask)
-        self.mask_sum_half = self.mask_sum // 2
-
-    def create_mask(self):
-        mask = np.zeros((self.radius * 2 + 1, self.radius * 2 + 1))
-        for i in range(mask.shape[0]):
-            for j in range(mask.shape[1]):
-                if (i - self.radius) ** 2 + (j - self.radius) ** 2 < self.radius ** 2:
-                    mask[i, j] = 1
-        return mask
-
-    def apply_mask(self, img, x, y):
-        mask_img = np.zeros((self.mask_size, self.mask_size))
-        for i in range(self.mask_size):
-            for j in range(self.mask_size):
-                mask_img[i, j] = img[y + i - self.mask_center, x + j - self.mask_center] * self.mask[i, j]
-        return mask_img
-
-
-
-# def median_huang(img, s):
-#     # check if the mask size is odd
-#     if s % 2 == 0:
-#         raise ValueError('Mask size must be odd')
-#     # create a new image with the same size as the input image
-#     median_img = np.zeros(img.shape)
-#     #create empty histogram with 256 bins
-#     hist = np.zeros(256)
-#     #iterate over the image lines and ignore the border pixels
-#     for j in range(s // 2, img.shape[0] - (s // 2)):
-#         #initialize the histogram for the line
-#         init_histogram(img, hist, s//2, j, s)
-#         #iterate over the line and ignore the border pixels
-#         for i in range(s // 2, img.shape[1] - (s // 2)):
-#             #calculate the median of the histogram
-#             #todo median mit medianpointer berechnen
-#             median_img[j, i] = np.argmax(np.cumsum(hist) >= (s * s) / 2)
-#             #update the histogram for the next iteration
-#             update_histogram(img, hist, i, j, s)
-#     return median_img.astype(np.uint8)
-
-
-
-# def entropy_ala_huang_LUT(img, s):
-#     # check if the mask size is odd
-#     if s % 2 == 0:
-#         raise ValueError('Mask size must be odd')
-#     #calculate the LUT
-#     LUT = gen_LUT_plog2p(square(s))
-#     # create a new image with the same size as the input image
-#     entropy_img = np.zeros(img.shape)
-#     #create empty histogram with 256 bins
-#     hist = np.zeros(256)
-#     #iterate over the image lines and ignore the border pixels
-#     for j in range(s // 2, img.shape[0] - (s // 2)):
-#         #initialize the histogram for the line
-#         init_histogram(img, hist, s//2, j, s)
-#         #iterate over the line and ignore the border pixels
-#         for i in range(s // 2, img.shape[1] - (s // 2)):
-#             #calculate the entropy of the histogram
-#             entropy_img[j, i] = calc_entropy_wLUT(hist, LUT)
-#             #update the histogram for the next iteration
-#             update_histogram(img, hist, i, j, s)
-#     return entropy_img
-
-
-
-# def entropy_ala_huang(img, s):
-#     # check if the mask size is odd
-#     if s % 2 == 0:
-#         raise ValueError('Mask size must be odd')
-#     # create a new image with the same size as the input image
-#     entropy_img = np.zeros(img.shape)
-#     #create empty histogram with 256 bins
-#     hist = np.zeros(256)
-#     #iterate over the image lines and ignore the border pixels
-#     for j in range(s // 2, img.shape[0] - (s // 2)):
-#         #initialize the histogram for the line
-#         init_histogram(img, hist, s//2, j, s)
-#         #iterate over the line and ignore the border pixels
-#         for i in range(s // 2, img.shape[1] - (s // 2)):
-#             #calculate the entropy of the histogram
-#             entropy_img[j, i] = calc_entropy_woLUT(hist)
-#             #update the histogram for the next iteration
-#             update_histogram(img, hist, i, j, s)
-#     return entropy_img
-
-
 def entropy_ala_huang_vnormal(img, mask_in, use_LUT = True):
     # # check if the mask size is odd
     # if mask_in.shape[0] % 2 == 0:
@@ -167,8 +71,6 @@ def entropy_ala_huang_vnormal2(img, mask_in, use_LUT = True):
     return entropy_img
 
 
-
-
 def calc_entropy_wLUT(hist, LUT):
     #calculate the entropy of the histogram 
     hist = hist[hist > 0].astype(np.int64)
@@ -197,25 +99,6 @@ def gen_LUT_plog2p(mask):
     return LUT
 
 
-# def init_histogram(img, hist, x, y, s):
-#     #fill histogramm with 0
-#     hist.fill(0)
-#     #iterate over the mask and fill histogram
-#     for j in range(-(s // 2), s // 2 + 1):
-#         for i in range(-(s // 2), s // 2 + 1):
-#             hist[img[y+j, x+i]] += 1
-#     return
-
-
-# def update_histogram(img, hist, x, y, s):
-#     #remove values from the histogram that are not in the mask anymore
-#     for j in range(-(s // 2), s // 2 + 1):
-#         hist[img[ y + j, x - s // 2]] -= 1
-#         if(x + s // 2 + 1 < img.shape[1]):
-#             hist[img[y + j, x + s // 2 + 1]] += 1
-#     return
-
-
 def init_histogram_v_normal(img, hist, x, y, filter):
     #fill histogramm with 0
     hist.fill(0)
@@ -227,7 +110,6 @@ def init_histogram_v_normal(img, hist, x, y, filter):
             hist[img[y+j, x+i]] += 1
         k+=1
     return
-
 
 
 def init_histogram_v_normal2(img, hist, x, y, filter):
@@ -258,42 +140,11 @@ def update_histogram_v_normal(img, hist, x, y, filter):
     return
 
 
-def update_histogram_v_normal(img, hist, x, y, filter):
-    #update histogram
-    k=0
-    for j in range(int(-filter[k][2]), int(filter[k][2]) + 1):
-        hist[img[ y + j, x - (int(filter[k][1]//2))]] -= 1
-        if(x + (int(filter[k][1]//2))+1 < img.shape[1]):
-            hist[img[y + j, x + (int(filter[k][1]//2))+1]] += 1
-        k+=1
-    return
-
-
-
-def entropy_filter_v_normal(img, mask_in, use_LUT = True):
-    LUT = gen_LUT_plog2p(mask_in)
-    mask = vstru2mw(mask_in)
-    # create a new image with the same size as the input image
-    entropy_img = np.zeros(img.shape)
-    #create empty histogram with 256 bins
-    hist = np.zeros(256)
-    #iterate over the image lines and ignore the border pixels
-    for j in range(-mask.shape[0]//2, img.shape[0] - mask.shape[0]//2):
-        #initialize the histogram for the line
-        init_histogram_v_normal(img, hist, mask.shape[0]//2, j, mask)
-        #iterate over the line and ignore the border pixels
-        for i in range(mask.shape[0]//2, img.shape[1] - mask.shape[0]//2):
-            #calculate the entropy of the histogram
-            if use_LUT:
-                entropy_img[j, i] = calc_entropy_wLUT(hist, LUT)
-            else:
-                entropy_img[j, i] = calc_entropy_woLUT(hist)
-            #update the histogram for the next iteration
-            update_histogram_v_normal(img, hist, i, j, mask)
-
-
-
-
+def entropy_vnormal_pad(img, mask):
+    w2 = mask.shape[0] // 2
+    im_padded = np.pad(img, ((w2, w2), (w2, w2)), 'constant', constant_values=0)
+    im_out = entropy_ala_huang_vnormal2(im_padded, mask)
+    return im_out[w2:-w2, w2:-w2]
 
 
 # create median image with cv2.medianBlur
@@ -314,8 +165,11 @@ testarray = np.array(testarray).astype(np.uint8)
 
 mask = disk(2)
 
-testarray = read_image(r'data\testimage_50_50.png')
-# entropy_ala_huang_vnormal2(img, mask, True)
+testarray = read_image(0)
+img_entropy_vnormal = entropy_vnormal_pad(testarray, mask)
+img_entropy_skimage = entropy(testarray, mask)
+difference_image(img_entropy_vnormal, img_entropy_skimage, "vnormal", "skimage")
+# entropy_ala_huang_vnormal2(img, mask, True)1
 # difference_image(entropy_ala_huang_vnormal(testarray, mask, True), entropy_ala_huang_vnormal2(testarray, mask, True))
 # race_functions(entropy_ala_huang_vnormal, entropy, 10, (img, mask, True),(img, mask), verbose=True)
 race_functions2((entropy_ala_huang_vnormal, entropy_ala_huang_vnormal2, entropy), ((testarray, mask, True),(testarray, mask, True),(testarray, mask)), 10, verbose=True)
