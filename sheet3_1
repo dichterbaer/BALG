@@ -38,16 +38,25 @@ def tophap_contrast_enhancement(img, ksize = 3, c = 1):
 
 img = read_image(r'data\lowContrast.jpg')
 c = 0.05
-img_contrastEnhanced = morphological_laplace_contrast_enhancement(img, ksize=3, c = c)
-difference_image(img, img_contrastEnhanced, name1='Original', name2='Contrast Enhanced')
+img_contrastEnhanced_morphLaplace = morphological_laplace_contrast_enhancement(img, ksize=3, c = c)
+img_contrastEnhanced_linearLaplace = linear_laplace_contrast_enhancement(img, ksize=3, c = c)
+img_contrastEnhanced_tophap = tophap_contrast_enhancement(img, ksize=3, c = c)
+
+difference_image(img, img_contrastEnhanced_morphLaplace, name1='Original', name2='Contrast Enhanced')
 
 #show results in plot
-plt.figure(figsize=(10,10))
-plt.subplot(1,2,1)
+plt.figure(figsize=(15,10))
+plt.subplot(1,4,1)
 plt.imshow(img, cmap='gray')
 plt.title('Original')
-plt.subplot(1,2,2)
-plt.imshow(img_contrastEnhanced, cmap='gray')
-plt.title('Contrast Enhanced with c = ' + str(c))
+plt.subplot(1,4,2)
+plt.imshow(img_contrastEnhanced_linearLaplace, cmap='gray')
+plt.title('Lin Laplace with c = ' + str(c))
+plt.subplot(1,4,3)
+plt.imshow(img_contrastEnhanced_morphLaplace, cmap='gray')
+plt.title('Morph Laplace with c = ' + str(c))
+plt.subplot(1,4,4)
+plt.imshow(img_contrastEnhanced_tophap, cmap='gray')
+plt.title('Tophat with c = ' + str(c))
 plt.show()
 
