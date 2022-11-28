@@ -1,11 +1,11 @@
 import numpy as np
 import cv2
 import matplotlib.pyplot as plt
-import scipy.ndimage
+from scipy.ndimage import maximum_filter
 from skimage.morphology import disk
 from skimage.filters.rank import maximum
 from vstru2mw import vstru2mw
-from balg_utils import read_image, difference_image, race_functions2
+from balg_utils import read_image, difference_image, race_functions2, race_functions
 
 img = cv2.imread('data/baum_grau.png')
 img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
@@ -106,6 +106,12 @@ def update_histogram_v_normal(img, hist, x, y, filter):
     return
 
 
+def max_vnormal_pad(img, mask):
+    w2 = mask.shape[0] // 2
+    im_padded = np.pad(img, ((w2, w2), (w2, w2)), 'constant', constant_values=0)
+    im_out = max_filter_v_normal(im_padded, mask)
+    return im_out[w2:-w2, w2:-w2]
+
 
 
 '''
@@ -149,16 +155,32 @@ testarray = [[10,5,6,20,4,10,8],
 img = np.array(testarray).astype(np.uint8)
 
 
-# img = read_image(0)
+img = read_image(1)
 radius = 2
 mask = disk(radius)
 img_max = max_filter_v_normal(img, mask)
-img_sk = maximum(img, mask)
+img_max_padded = max_vnormal_pad(img, mask)
+img_max_sk = maximum(img, mask)
+img_max_scipy = maximum_filter(img, footprint = mask)
+diff = abs(img_max_padded - img_max_scipy)
+#store all indices where difference is not 0
+diff_indices = np.argwhere(diff != 0)
 #difference
-difference_image(img_max, img_sk)
+# difference_image(img_max, img_sk)
+difference_image(img_max_scipy, img_max_padded)
 
-# fig = plt.figure()
-# ax = fig.add_subplot(1, 1, 1)
-# plt.imshow(img_vnormal, cmap="gray")
-# ax.set_title('v-normal')
+
+# for radius in range(2, 21):
+#     mask = disk(radius)
+#     # times_ownImplementation, times_scipy = race_functions2((max_vnormal_pad, maximum_filter), ((img, mask), (img, mask)), 20)
+#     times_ownImplementation, times_scipy = race_functions(max_vnormal_pad, maximum_filter, (img, mask), (img, mask), 20)
+#     #difference
+
+# # plot times over radius
+# plt.plot(range(2, 21), times_ownImplementation, label="own implementation")
+# plt.plot(range(2, 21), times_scipy, label="scipy implementation")
+# plt.xlabel("radius")    
+# plt.ylabel("time in ms")
+# plt.legend()
 # plt.show()
+
