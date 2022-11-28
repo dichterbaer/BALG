@@ -18,32 +18,33 @@ def gils_max_1d(data,w, pad_mode="reflect"):
     
     # indices of makro pixels
     tmp = nl//w*w
-    ix = np.arange(w,tmp,w) 
+    indw = np.arange(w,tmp,w) 
     #ix=ix-1       
-    nw = np.size(ix)
+    nw = np.size(indw)
     
     # makro pixels
-    S=np.zeros([nw,w])
-    R=np.zeros([nw,w])
+    sup=np.zeros([nw,w])
+    rlow=np.zeros([nw,w])
     
     
     # Preprocessing
-    S[:,0]=data[ix]
+    sup[:,0]=data[indw]
     
     for k in range(1,w):
-        S[:,k]=np.maximum(S[:,k-1],data[ix+k])
-        R[:,k]=np.maximum(R[:,k-1],data[ix-k])
+        sup[:,k]=np.maximum(sup[:,k-1],data[indw+k])
+        rlow[:,k]=np.maximum(rlow[:,k-1],data[indw-k])
     
     
     # Merging
     maxline=np.zeros(nl) 
     for j in range(0,w-1):
-        maxline[ix-w2+j]=np.maximum(R[:,w-j-1],S[:,j])                
-    maxline[ix+w-w2-1]=S[:,w-1]
-    maxline[ix-w2]=R[:,w-1]
+        maxline[indw-w2+j]=np.maximum(rlow[:,w-j-1],sup[:,j])                
+    maxline[indw+w-w2-1]=sup[:,w-1]
+    maxline[indw-w2]=rlow[:,w-1]
 
-    
-    return maxline[w:-w]
+    #cut paddding
+    maxline = maxline[w:-w]
+    return maxline
 
 
 
