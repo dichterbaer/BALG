@@ -29,6 +29,7 @@ def gils_max_1d(data,w, pad_mode="reflect"):
     
     # Preprocessing
     S[:,0]=data[ix]
+    R[:,0]=data[ix]
     
     for k in range(1,w):
         S[:,k]=np.maximum(S[:,k-1],data[ix+k])
@@ -93,24 +94,24 @@ def gils_max_2d(img,s,pad_mode="reflect"):
 
   
 img=read_image(1)   
-problem=1
+problem=4
 
 if problem == 1:
     #a)
 
-    #data=np.random.randint(255, size=(30))
-    #data=[130, 225,  54, 112,  43, 159, 182, 240,  98, 236, 217, 175, 149,  63,  12, 169,  55,  45, 143, 210,  71,  24, 200, 232, 163, 142, 143,  88,  55, 188]
+    data=np.random.randint(255, size=(30))
+    data=[130, 225,  54, 112,  43, 159, 182, 240,  98, 236, 217, 175, 149,  63,  12, 169,  55,  45, 143, 210,  71,  24, 200, 232, 163, 142, 143,  88,  55, 188]
     #data=[1,1,1,1,71,24,200,232,163,142,143,88,55,188,10]
-    data=[1,1,1,1,2,3]
-    k=3
+    #data=[1,1,1,1,2,3]
+    k=7
     maxdata = gils_max_1d(data, k)
     maxdata2 = flt.maximum_filter1d(data,k)
     #print("Daten:")
     #print(data)
     print("Maximum Gil:")
     print(maxdata)
-    # print("Abweichung Gil zu scipy:")
-    # print(maxdata2-maxdata)
+    print("Abweichung Gil zu scipy:")
+    print(maxdata2-maxdata)
 
 
 if problem == 2:
@@ -138,7 +139,7 @@ if problem == 3:
     diff=difference_image(result,result_scipy,"Gil Max","Scipy Max")
     race_functions(gils_max_2d,flt.maximum_filter,10,[img,21],[img,21])
 
-
+"""
 if problem == 4:
     #e)
 
@@ -206,8 +207,9 @@ if problem == 4:
 
 
     plt.show()
+"""
 
-if problem == 5:
+if problem == 4:
     img=read_image(2)     
     num_runs=6
 
