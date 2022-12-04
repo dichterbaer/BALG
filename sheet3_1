@@ -36,27 +36,100 @@ def tophap_contrast_enhancement(img, ksize = 3, c = 1):
 
 
 
+# img = read_image(r'data\lowContrast.jpg')
+# c = 0.05
+# img_contrastEnhanced_morphLaplace = morphological_laplace_contrast_enhancement(img, ksize=3, c = c)
+# img_contrastEnhanced_linearLaplace = linear_laplace_contrast_enhancement(img, ksize=3, c = c)
+# img_contrastEnhanced_tophap = tophap_contrast_enhancement(img, ksize=3, c = c)
+
+# difference_image(img, img_contrastEnhanced_morphLaplace, name1='Original', name2='Contrast Enhanced')
+
+# #show results in plot
+# plt.figure(figsize=(15,10))
+# plt.subplot(1,4,1)
+# plt.imshow(img, cmap='gray')
+# plt.title('Original')
+# plt.subplot(1,4,2)
+# plt.imshow(img_contrastEnhanced_linearLaplace, cmap='gray')
+# plt.title('Lin Laplace with c = ' + str(c))
+# plt.subplot(1,4,3)
+# plt.imshow(img_contrastEnhanced_morphLaplace, cmap='gray')
+# plt.title('Morph Laplace with c = ' + str(c))
+# plt.subplot(1,4,4)
+# plt.imshow(img_contrastEnhanced_tophap, cmap='gray')
+# plt.title('Tophat with c = ' + str(c))
+# plt.show()
+
+# comperae morphological_laplace_contrast_enhancement for different c
 img = read_image(r'data\lowContrast.jpg')
-c = 0.05
-img_contrastEnhanced_morphLaplace = morphological_laplace_contrast_enhancement(img, ksize=3, c = c)
-img_contrastEnhanced_linearLaplace = linear_laplace_contrast_enhancement(img, ksize=3, c = c)
-img_contrastEnhanced_tophap = tophap_contrast_enhancement(img, ksize=3, c = c)
+smoothing_kernel = 3
+img_smoothed = cv2.GaussianBlur(img, (smoothing_kernel,smoothing_kernel), 0)
 
-difference_image(img, img_contrastEnhanced_morphLaplace, name1='Original', name2='Contrast Enhanced')
 
-#show results in plot
+c_values = [0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1]
+img_contrastEnhanced_morphLaplace = []
+for c in c_values:
+    img_contrastEnhanced_morphLaplace.append(morphological_laplace_contrast_enhancement(img_smoothed, ksize=3, c = c))
+
+#show results in plot in square grid
 plt.figure(figsize=(15,10))
-plt.subplot(1,4,1)
-plt.imshow(img, cmap='gray')
+plt.subplot(2,4,1)
+plt.imshow(img, cmap='gray', vmin=0, vmax=255)
 plt.title('Original')
-plt.subplot(1,4,2)
-plt.imshow(img_contrastEnhanced_linearLaplace, cmap='gray')
-plt.title('Lin Laplace with c = ' + str(c))
-plt.subplot(1,4,3)
-plt.imshow(img_contrastEnhanced_morphLaplace, cmap='gray')
-plt.title('Morph Laplace with c = ' + str(c))
-plt.subplot(1,4,4)
-plt.imshow(img_contrastEnhanced_tophap, cmap='gray')
-plt.title('Tophat with c = ' + str(c))
+for i in range(len(img_contrastEnhanced_morphLaplace)):
+    plt.subplot(2,4,i+2)
+    plt.imshow(img_contrastEnhanced_morphLaplace[i], cmap='gray', vmin=0, vmax=255)
+    plt.title('Morph Laplace with c = ' + str(c_values[i]))
+#main title
+plt.suptitle(f'Morphological Laplace Contrast Enhancement for different c \n image was smoothed before with kernel size {smoothing_kernel} \n all images are scaled from 0 to 255', fontsize=16)
+plt.show()
+
+
+# comperae linear_laplace_contrast_enhancement for different c
+img = read_image(r'data\lowContrast.jpg')
+
+img_smoothed = cv2.GaussianBlur(img, (smoothing_kernel,smoothing_kernel), 0)
+
+c_values = [0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1]
+img_contrastEnhanced_linearLaplace = []
+for c in c_values:
+    img_contrastEnhanced_linearLaplace.append(linear_laplace_contrast_enhancement(img_smoothed, ksize=3, c = c))
+
+
+#show results in plot in square grid
+plt.figure(figsize=(15,10))
+plt.subplot(2,4,1)
+plt.imshow(img, cmap='gray', vmin=0, vmax=255)
+plt.title('Original')
+for i in range(len(img_contrastEnhanced_linearLaplace)):
+    plt.subplot(2,4,i+2)
+    plt.imshow(img_contrastEnhanced_linearLaplace[i], cmap='gray', vmin=0, vmax=255)
+    plt.title('Lin Laplace with c = ' + str(c_values[i]))
+#main title
+plt.suptitle(f'Linear Laplace Contrast Enhancement for different c \n image was smoothed before with kernel size {smoothing_kernel} \n all images are scaled from 0 to 255', fontsize=16)
+plt.show()
+
+
+# comperae tophat_contrast_enhancement for different c
+img = read_image(r'data\lowContrast.jpg')
+
+img_smoothed = cv2.GaussianBlur(img, (smoothing_kernel,smoothing_kernel), 0)
+
+c_values = [0.1, 0.2, 0.5, 1, 2, 5, 10]
+img_contrastEnhanced_tophat = []
+for c in c_values:
+    img_contrastEnhanced_tophat.append(tophap_contrast_enhancement(img_smoothed, ksize=3, c = c))
+
+#show results in plot in square grid
+plt.figure(figsize=(15,10))
+plt.subplot(2,4,1)
+plt.imshow(img, cmap='gray', vmin=0, vmax=255)
+plt.title('Original')
+for i in range(len(img_contrastEnhanced_tophat)):
+    plt.subplot(2,4,i+2)
+    plt.imshow(img_contrastEnhanced_tophat[i], cmap='gray', vmin=0, vmax=255)
+    plt.title('Tophat with c = ' + str(c_values[i]))
+#main title
+plt.suptitle(f'Tophat Contrast Enhancement for different c \n image was smoothed before with kernel size {smoothing_kernel} \n all images are scaled from 0 to 255', fontsize=16)
 plt.show()
 
