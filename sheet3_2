@@ -1,0 +1,74 @@
+import cv2
+import numpy as np
+from matplotlib import pyplot as plt
+from balg_utils import read_image, difference_image, race_functions2
+from skimage.morphology import reconstruction as sk_reconstruction
+
+
+#reconstruction by dilation
+
+def reconstruction_by_dilation(marker_img, img, SE):
+    dilation = marker_img.copy()
+
+    nothing_changed = False
+    
+    while(not nothing_changed):
+        dilation_old = dilation
+        dilation = cv2.dilate(dilation, SE, iterations=1)
+        dilation = np.minimum(dilation, img)
+        if np.array_equal(dilation, dilation_old):
+            nothing_changed = True
+    return dilation
+
+
+def reconstruction_by_erosion(marker_img, img, SE):
+    erosion = marker_img.copy()
+
+    nothing_changed = False
+    
+    while(not nothing_changed):
+        erosion_old = erosion
+        erosion = cv2.erode(erosion, SE, iterations=1)
+        erosion = np.maximum(erosion, img)
+        if np.array_equal(erosion, erosion_old):
+            nothing_changed = True
+    return erosion
+
+
+#2a
+
+img = read_image(r'data\particle1.jpg')
+img = cv2.bitwise_not(img)
+#ret, img = cv2.threshold(img, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+structuring_element = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (43, 43))
+dilation_size=3
+structuring_element_dilate = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (dilation_size, dilation_size))
+    #threshold image
+    #ret, thresh = cv2.threshold(img, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+erosion = cv2.erode(img, structuring_element, iterations=1)
+dilation = reconstruction_by_dilation(erosion, img, structuring_element_dilate)
+
+
+#show erosion
+plt.figure(figsize=(15,10)) 
+plt.subplot(1,3,1)
+plt.imshow(img, cmap='gray')
+plt.title('Original')
+plt.subplot(1,3,2)
+plt.imshow(erosion, cmap='gray')
+plt.title('Erosion')
+plt.subplot(1,3,3)
+plt.imshow(dilation, cmap='gray')
+plt.title('Reconstructed')
+plt.show()
+
+# difference_image(img, dilation, name1='Original', name2='Reconstruction by Dilation')
+
+#2c
+# sk_reconstructed = sk_reconstruction(erosion, img, method = 'dilation')
+# difference_image(img, sk_reconstructed, name1='Original', name2='Reconstruction by Dilation')
+race_functions2(funcArray=(reconstruction_by_dilation, sk_reconstruction), argArray=((erosion, img, structuring_element_dilate), (erosion, img, 'dilation')), num_runs=50, verbose=True)
+
+
+
+
