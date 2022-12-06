@@ -90,7 +90,9 @@ def init_histogram_v_normal(img, hist, x, y, filter):
         #calc start and end index
         x_start = int(x-(filter[k][1]//2))
         x_end = int(x+(filter[k][1]//2))+1
-        hist[img[y+j, x_start:x_end]] += 1
+        grayvals, count = np.unique(img[y+j, x_start:x_end], return_counts=True)
+        hist[grayvals] += count
+        #hist[img[y+j, x_start:x_end]] += 1
         k+=1
     return
 
