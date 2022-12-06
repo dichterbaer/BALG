@@ -86,152 +86,166 @@ def morphological_smoothing(img, size_SE):
     return closed
 
 
+
+aufg = "f"
 #2a
 
-# img = read_image(r'data\particle1.jpg')
-# img = cv2.bitwise_not(img)
-# #ret, img = cv2.threshold(img, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-# structuring_element = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (43, 43))
-# dilation_size=3
-# structuring_element_dilate = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (dilation_size, dilation_size))
-#     #threshold image
-#     #ret, thresh = cv2.threshold(img, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-# erosion = cv2.erode(img, structuring_element, iterations=1)
-# dilation = reconstruction_by_dilation(erosion, img, structuring_element_dilate)
+if(aufg == "a"):
+    img = read_image(r'data\particle1.jpg')
+    img = cv2.bitwise_not(img)
+    #ret, img = cv2.threshold(img, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    structuring_element = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (43, 43))
+    dilation_size=3
+    structuring_element_dilate = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (dilation_size, dilation_size))
+        #threshold image
+        #ret, thresh = cv2.threshold(img, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    erosion = cv2.erode(img, structuring_element, iterations=1)
+    dilation = reconstruction_by_dilation(erosion, img, structuring_element_dilate)
 
 
-# #show erosion
-# plt.figure(figsize=(15,10)) 
-# plt.subplot(1,3,1)
-# plt.imshow(img, cmap='gray')
-# plt.title('Original')
-# plt.subplot(1,3,2)
-# plt.imshow(erosion, cmap='gray')
-# plt.title('Erosion')
-# plt.subplot(1,3,3)
-# plt.imshow(dilation, cmap='gray')
-# plt.title('Reconstructed')
-# plt.show()
+    #show erosion
+    plt.figure(figsize=(15,10)) 
+    plt.subplot(1,3,1)
+    plt.imshow(img, cmap='gray')
+    plt.title('Original')
+    plt.subplot(1,3,2)
+    plt.imshow(erosion, cmap='gray')
+    plt.title('Erosion')
+    plt.subplot(1,3,3)
+    plt.imshow(dilation, cmap='gray')
+    plt.title('Reconstructed')
+    plt.suptitle('Reconstruction by Dilation 2a\n ', fontsize=20)
+    plt.show()
 
-# # difference_image(img, dilation, name1='Original', name2='Reconstruction by Dilation')
-
-# #2c
-# # sk_reconstructed = sk_reconstruction(erosion, img, method = 'dilation')
-# # difference_image(img, sk_reconstructed, name1='Original', name2='Reconstruction by Dilation')
-# race_functions2(funcArray=(reconstruction_by_dilation, sk_reconstruction), argArray=((erosion, img, structuring_element_dilate), (erosion, img, 'dilation')), num_runs=50, verbose=True)
-
-#2d
-# img = read_image(r'data\noise.jpg')
-# kernel_size = 4
-# smoothed1 = smoothing_by_reconstruction_open_close(img, kernel_size)
-# smoothed2 = smoothing_by_reconstruction_close_open(img, kernel_size)
-
-# plt.figure(figsize=(15,10)) 
-# plt.subplot(1,3,1)
-# plt.imshow(img, cmap='gray')
-# plt.title('Original')
-# plt.subplot(1,3,2)
-# plt.imshow(smoothed1, cmap='gray')
-# plt.title('Smoothed by Reconstruction \n First opening then closing')
-# plt.subplot(1,3,3)
-# plt.imshow(smoothed2, cmap='gray')
-# plt.title('Smoothed by Reconstruction \n First closing then opening')
-# #main title
-# plt.suptitle('Smoothing by Reconstruction 2d', fontsize=20)
-# plt.show()
-
-#2e
-# img = read_image(r'data\noise.jpg')
-# kernel_size = 11
-# img_opened = cv2.morphologyEx(img, cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (kernel_size, kernel_size)))
-# img_reconstructed_by_opening = opening_by_reconstruction(img, kernel_size)
-
-# #show all images
-# plt.figure(figsize=(15,10))
-# plt.subplot(1,3,1)
-# plt.imshow(img, cmap='gray')
-# plt.title('Original')
-# plt.subplot(1,3,2)
-# plt.imshow(img_opened, cmap='gray')
-# plt.title('Opened kernel size = {}'.format(kernel_size))
-# plt.subplot(1,3,3)
-# plt.imshow(img_reconstructed_by_opening, cmap='gray')
-# plt.title('Reconstructed by Opening kernel size = {}'.format(kernel_size))
-# #main title
-# plt.suptitle('Comparison Opening and Opening by reconstruction 2e\n ', fontsize=20)
-# plt.show()
-
-# kernel_size = 5
-# img_closed = cv2.morphologyEx(img, cv2.MORPH_CLOSE, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (kernel_size, kernel_size)))
-# img_reconstructed_by_closing = closing_by_reconstruction(img, kernel_size)
-
-# #show all images
-# plt.figure(figsize=(15,10))
-# plt.subplot(1,3,1)
-# plt.imshow(img, cmap='gray')
-# plt.title('Original')
-# plt.subplot(1,3,2)
-# plt.imshow(img_closed, cmap='gray')
-# plt.title('Closed kernel size = {}'.format(kernel_size))
-# plt.subplot(1,3,3)
-# plt.imshow(img_reconstructed_by_closing, cmap='gray')
-# plt.title('Reconstructed by Closing kernel size = {}'.format(kernel_size))
-# #main title
-# plt.suptitle('Comparison Closing and Closing by reconstruction 2e\n ', fontsize=20)
-# plt.show()
-
-# #laufzeit (Bemerkung: opening by reconstruction ist schneller als closing by reconstruction (faktor 10))
-# race_functions2(funcArray=(opening_by_reconstruction, cv2.morphologyEx), argArray=((img, kernel_size), (img, cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (kernel_size, kernel_size)))), num_runs=50, verbose=True)
-# race_functions2(funcArray=(closing_by_reconstruction, cv2.morphologyEx), argArray=((img, kernel_size), (img, cv2.MORPH_CLOSE, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (kernel_size, kernel_size)))), num_runs=50, verbose=True)
-
-#2f
-img = read_image(r'data\noise.jpg')
-kernel_size = 5
-img_morph_smoothed = morphological_smoothing(img, kernel_size)
-img_smoothed_co = smoothing_by_reconstruction_close_open(img, kernel_size)
-img_smoothed_oc = smoothing_by_reconstruction_open_close(img, kernel_size)
-
-#show all images
-plt.figure(figsize=(20,10))
-plt.subplot(1,4,1)
-plt.imshow(img, cmap='gray')
-plt.title('Original')
-plt.subplot(1,4,2)
-plt.imshow(img_morph_smoothed, cmap='gray')
-plt.title('Morphological Smoothing kernel size = {}'.format(kernel_size))
-plt.subplot(1,4,3)
-plt.imshow(img_smoothed_co, cmap='gray')
-plt.title('Smoothed by Reconstruction \n First closing then opening kernel size = {}'.format(kernel_size))
-plt.subplot(1,4,4)
-plt.imshow(img_smoothed_oc, cmap='gray')
-plt.title('Smoothed by Reconstruction \n First opening then closing kernel size = {}'.format(kernel_size))
-#main title
-plt.suptitle('Comparison Morphological Smoothing and Smoothing by Reconstruction 2f\n ', fontsize=20)
-plt.show()
+    difference_image(img, dilation, name1='Original', name2='Reconstruction by Dilation')
 
 
-img = read_image(r'data\baum_grau.png')
-kernel_size = 11
-img_morph_smoothed = morphological_smoothing(img, kernel_size)
-img_smoothed_co = smoothing_by_reconstruction_close_open(img, kernel_size)
-img_smoothed_oc = smoothing_by_reconstruction_open_close(img, kernel_size)
+if(aufg == "c"):
+    img = read_image(r'data\particle1.jpg')
+    img = cv2.bitwise_not(img)
+    structuring_element = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (43, 43))
+    dilation_size=3
+    structuring_element_dilate = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (dilation_size, dilation_size))
+    erosion = cv2.erode(img, structuring_element, iterations=1)
+    sk_reconstructed = sk_reconstruction(erosion, img, method = 'dilation')
+    dilation = reconstruction_by_dilation(erosion, img, structuring_element_dilate)
+    race_functions2(funcArray=(reconstruction_by_dilation, sk_reconstruction), argArray=((erosion, img, structuring_element_dilate), (erosion, img, 'dilation')), num_runs=50, verbose=True)
+    difference_image(dilation, sk_reconstructed, name1='Reconstruction by Dilation (own Impl)', name2='Reconstruction by Dilation (SK)')
 
-plt.figure(figsize=(20,10))
-plt.subplot(1,4,1)
-plt.imshow(img, cmap='gray')
-plt.title('Original')
-plt.subplot(1,4,2)
-plt.imshow(img_morph_smoothed, cmap='gray')
-plt.title('Morphological Smoothing kernel size = {}'.format(kernel_size))
-plt.subplot(1,4,3)
-plt.imshow(img_smoothed_co, cmap='gray')
-plt.title('Smoothed by Reconstruction \n First closing then opening kernel size = {}'.format(kernel_size))
-plt.subplot(1,4,4)
-plt.imshow(img_smoothed_oc, cmap='gray')
-plt.title('Smoothed by Reconstruction \n First opening then closing kernel size = {}'.format(kernel_size))
-#main title
-plt.suptitle('Comparison Morphological Smoothing and Smoothing by Reconstruction 2f\n ', fontsize=20)
-plt.show()
+if(aufg == "d"):
+    img = read_image(r'data\noise.jpg')
+    img = cv2.bitwise_not(img)
+    kernel_size = 4
+    smoothed1 = smoothing_by_reconstruction_open_close(img, kernel_size)
+    smoothed2 = smoothing_by_reconstruction_close_open(img, kernel_size)
 
-# laufzeit
-race_functions2(funcArray=(morphological_smoothing, smoothing_by_reconstruction_close_open, smoothing_by_reconstruction_open_close), argArray=((img, kernel_size), (img, kernel_size), (img, kernel_size)), num_runs=50, verbose=True)
+    plt.figure(figsize=(15,10)) 
+    plt.subplot(1,3,1)
+    plt.imshow(img, cmap='gray')
+    plt.title('Original')
+    plt.subplot(1,3,2)
+    plt.imshow(smoothed1, cmap='gray')
+    plt.title('Smoothed by Reconstruction \n First opening then closing')
+    plt.subplot(1,3,3)
+    plt.imshow(smoothed2, cmap='gray')
+    plt.title('Smoothed by Reconstruction \n First closing then opening')
+    #main title
+    plt.suptitle('Smoothing by Reconstruction 2d', fontsize=20)
+    plt.show()
+
+if(aufg == "e"):
+    img = read_image(r'data\noise.jpg')
+    img = cv2.bitwise_not(img)
+    kernel_size = 11
+    img_opened = cv2.morphologyEx(img, cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (kernel_size, kernel_size)))
+    img_reconstructed_by_opening = opening_by_reconstruction(img, kernel_size)
+
+    #show all images
+    plt.figure(figsize=(15,10))
+    plt.subplot(1,3,1)
+    plt.imshow(img, cmap='gray')
+    plt.title('Original')
+    plt.subplot(1,3,2)
+    plt.imshow(img_opened, cmap='gray')
+    plt.title('Opened kernel size = {}'.format(kernel_size))
+    plt.subplot(1,3,3)
+    plt.imshow(img_reconstructed_by_opening, cmap='gray')
+    plt.title('Reconstructed by Opening kernel size = {}'.format(kernel_size))
+    #main title
+    plt.suptitle('Comparison Opening and Opening by reconstruction 2e\n ', fontsize=20)
+    plt.show()
+
+    kernel_size = 11
+    img_closed = cv2.morphologyEx(img, cv2.MORPH_CLOSE, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (kernel_size, kernel_size)))
+    img_reconstructed_by_closing = closing_by_reconstruction(img, kernel_size)
+
+    #show all images
+    plt.figure(figsize=(15,10))
+    plt.subplot(1,3,1)
+    plt.imshow(img, cmap='gray')
+    plt.title('Original')
+    plt.subplot(1,3,2)
+    plt.imshow(img_closed, cmap='gray')
+    plt.title('Closed kernel size = {}'.format(kernel_size))
+    plt.subplot(1,3,3)
+    plt.imshow(img_reconstructed_by_closing, cmap='gray')
+    plt.title('Reconstructed by Closing kernel size = {}'.format(kernel_size))
+    #main title
+    plt.suptitle('Comparison Closing and Closing by reconstruction 2e\n ', fontsize=20)
+    plt.show()
+
+    #laufzeit (Bemerkung: opening by reconstruction ist schneller als closing by reconstruction (faktor 10))
+    race_functions2(funcArray=(opening_by_reconstruction, cv2.morphologyEx), argArray=((img, kernel_size), (img, cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (kernel_size, kernel_size)))), num_runs=50, verbose=True)
+    race_functions2(funcArray=(closing_by_reconstruction, cv2.morphologyEx), argArray=((img, kernel_size), (img, cv2.MORPH_CLOSE, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (kernel_size, kernel_size)))), num_runs=50, verbose=True)
+
+if(aufg == "f"):
+    img = read_image(r'data\noise.jpg')
+    kernel_size = 5
+    img_morph_smoothed = morphological_smoothing(img, kernel_size)
+    img_smoothed_co = smoothing_by_reconstruction_close_open(img, kernel_size)
+    img_smoothed_oc = smoothing_by_reconstruction_open_close(img, kernel_size)
+
+    #show all images
+    plt.figure(figsize=(20,10))
+    plt.subplot(1,4,1)
+    plt.imshow(img, cmap='gray')
+    plt.title('Original')
+    plt.subplot(1,4,2)
+    plt.imshow(img_morph_smoothed, cmap='gray')
+    plt.title('Morphological Smoothing kernel size = {}'.format(kernel_size))
+    plt.subplot(1,4,3)
+    plt.imshow(img_smoothed_co, cmap='gray')
+    plt.title('Smoothed by Reconstruction \n First closing then opening kernel size = {}'.format(kernel_size))
+    plt.subplot(1,4,4)
+    plt.imshow(img_smoothed_oc, cmap='gray')
+    plt.title('Smoothed by Reconstruction \n First opening then closing kernel size = {}'.format(kernel_size))
+    #main title
+    plt.suptitle('Comparison Morphological Smoothing and Smoothing by Reconstruction 2f\n ', fontsize=20)
+    plt.show()
+
+
+    img = read_image(r'data\baum_grau.png')
+    kernel_size = 11
+    img_morph_smoothed = morphological_smoothing(img, kernel_size)
+    img_smoothed_co = smoothing_by_reconstruction_close_open(img, kernel_size)
+    img_smoothed_oc = smoothing_by_reconstruction_open_close(img, kernel_size)
+
+    plt.figure(figsize=(20,10))
+    plt.subplot(1,4,1)
+    plt.imshow(img, cmap='gray')
+    plt.title('Original')
+    plt.subplot(1,4,2)
+    plt.imshow(img_morph_smoothed, cmap='gray')
+    plt.title('Morphological Smoothing kernel size = {}'.format(kernel_size))
+    plt.subplot(1,4,3)
+    plt.imshow(img_smoothed_co, cmap='gray')
+    plt.title('Smoothed by Reconstruction \n First closing then opening kernel size = {}'.format(kernel_size))
+    plt.subplot(1,4,4)
+    plt.imshow(img_smoothed_oc, cmap='gray')
+    plt.title('Smoothed by Reconstruction \n First opening then closing kernel size = {}'.format(kernel_size))
+    #main title
+    plt.suptitle('Comparison Morphological Smoothing and Smoothing by Reconstruction 2f\n ', fontsize=20)
+    plt.show()
+
+    # laufzeit
+    race_functions2(funcArray=(morphological_smoothing, smoothing_by_reconstruction_close_open, smoothing_by_reconstruction_open_close), argArray=((img, kernel_size), (img, kernel_size), (img, kernel_size)), num_runs=50, verbose=True)
