@@ -3,33 +3,130 @@ import cv2
 from skimage.draw import ellipse
 import matplotlib.pyplot as plt
 from scipy import ndimage as ndi
+from balg_utils import read_image
 
-# Create a black image with dimensions 200x200
-image = np.zeros((200, 200), dtype=np.bool)
 
-# Create three overlapping disks with radii 50 at the following coordinates:
-# (75, 75), (75, 100), (100, 85)
-radius = 50
+def watershed_segmentation(image, threshold, verbose = False):
+    if(not image.dtype == bool):
+        _, image = cv2.threshold(image,0,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
+        if (verbose):
+            plt.imshow(image, cmap=plt.cm.gray)
+            plt.title('Image after Threshold')
+            plt.show()
+    image = image.astype(np.uint8)
+    kernel = np.ones((3,3),np.uint8)
+    sure_bg = cv2.dilate(image,kernel,iterations=3)
+    distance = -cv2.distanceTransform(image, cv2.DIST_L2, 3)
+    if (verbose):
+        plt.imshow(distance, cmap=plt.cm.gray)
+        plt.title('Negative Distance Transformation')
+        plt.show()
+    _, markers = cv2.threshold(distance, threshold, 255, cv2.THRESH_BINARY_INV)
+    if (verbose):
+        plt.imshow(markers, cmap=plt.cm.gray)
+        plt.title('Markers after Threshold')
+        plt.show()
+    unknown = cv2.subtract(sure_bg.astype(np.float32), markers)
+    if (verbose):
+        plt.imshow(unknown, cmap=plt.cm.gray)
+        plt.title('Unknown')
+        plt.show()
+    _, markers = cv2.connectedComponents(markers.astype(np.uint8))
+    markers += 1
+    markers[unknown==255] = 0
+    distance = distance.astype(np.uint8)
+    distance = cv2.cvtColor(distance, cv2.COLOR_GRAY2RGB)
+    image = image.astype(np.uint8)
+    image = cv2.cvtColor(image, cv2.COLOR_GRAY2RGB)
+    markers = cv2.watershed(image, markers)
+    return markers
 
-rr, cc = ellipse(75, 75, radius, radius, shape=image.shape)
-image[rr, cc] = 1
-rr, cc = ellipse(75, 125, radius, radius, shape=image.shape)
-image[rr, cc] = 1
-rr, cc = ellipse(125, 100, radius, radius, shape=image.shape)
-image[rr, cc] = 1
 
+def testimage():
+    # Create a black image with dimensions 200x200
+    image = np.zeros((100, 200), dtype=np.bool)
+
+    radius = 40
+
+    rr, cc = ellipse(50, 50, radius, radius, shape=image.shape)
+    image[rr, cc] = 1
+    rr, cc = ellipse(50, 150, radius, radius, shape=image.shape)
+    image[rr, cc] = 1
+    rr, cc = ellipse(50, 100, radius, radius, shape=image.shape)
+    image[rr, cc] = 1
+    return image.astype(np.uint8)
+
+
+image = testimage()
 # Display the image
 plt.imshow(image, cmap=plt.cm.gray)
 plt.show()
+segmented = watershed_segmentation(image, -32)
 
-#create negative distance transform
-image = image.astype(np.uint8)
-distance = -cv2.distanceTransform(image, cv2.DIST_L2, 3)
-
-
-# Display the distance transform
-plt.imshow(distance, cmap=plt.cm.gray)
+plt.figure(figsize=(15, 10))
+plt.subplot(1,2,1)
+plt.imshow(image, cmap='gray')
+plt.title('Image')
+plt.subplot(1,2,2)
+plt.imshow(segmented, cmap='gray')
+plt.title('Segmented Image with negative Distance map and watershed')
 plt.show()
+
+
+
+image = read_image(r'data\pills.jpg')
+# Display the image
+plt.imshow(image, cmap=plt.cm.gray)
+plt.show()
+segmented = watershed_segmentation(image, -5)
+plt.figure(figsize=(15, 10))
+plt.subplot(1,2,1)
+plt.imshow(image, cmap='gray')
+plt.title('Image')
+plt.subplot(1,2,2)
+plt.imshow(segmented, cmap='gray')
+plt.title('Segmented Image with negative Distance map and watershed')
+plt.show()
+
+
+# #create negative distance transform
+# image = image.astype(np.uint8)
+# kernel = np.ones((3,3),np.uint8)
+# sure_bg = cv2.dilate(image,kernel,iterations=3)
+# distance = -cv2.distanceTransform(image, cv2.DIST_L2, 3)
+
+# # Display the distance transform
+# plt.imshow(distance, cmap=plt.cm.gray)
+# plt.title('Negative Distance Transformation')
+# plt.show()
+
+# ret, markers = cv2.threshold(distance, -32, 255, cv2.THRESH_BINARY_INV)
+
+# unknown = cv2.subtract(sure_bg.astype(np.float32), markers)
+
+# plt.imshow(markers, cmap=plt.cm.gray)
+# plt.title('Markers after Threshold')
+# plt.show()
+
+# ret, markers = cv2.connectedComponents(markers.astype(np.uint8))
+# markers += 1
+# markers[unknown==1] = 0
+
+# plt.imshow(markers, cmap=plt.cm.gray)
+# plt.title('Connected Components')
+# plt.show()
+
+# distance = distance.astype(np.uint8)
+# distance = cv2.cvtColor(distance, cv2.COLOR_GRAY2RGB)
+
+# image = image.astype(np.uint8)
+# image = cv2.cvtColor(image, cv2.COLOR_GRAY2RGB)
+
+# markers = cv2.watershed(image, markers)
+
+# plt.imshow(markers, cmap=plt.cm.gray)
+# plt.title('Segmented')
+# plt.show()
 
 
 
