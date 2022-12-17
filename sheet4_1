@@ -45,9 +45,7 @@ def watershed_segmentation(image, threshold, verbose = False):
 def testimage():
     # Create a black image with dimensions 200x200
     image = np.zeros((100, 200), dtype=np.bool)
-
     radius = 40
-
     rr, cc = ellipse(50, 50, radius, radius, shape=image.shape)
     image[rr, cc] = 1
     rr, cc = ellipse(50, 150, radius, radius, shape=image.shape)
