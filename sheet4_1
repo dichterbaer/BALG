@@ -5,40 +5,363 @@ import matplotlib.pyplot as plt
 from scipy import ndimage as ndi
 from balg_utils import read_image
 
+def reconstruction_by_erosion(marker_img, img, SE):
+    erosion = marker_img.copy()
 
-def watershed_segmentation(image, threshold, verbose = False):
+    nothing_changed = False
+    
+    while(not nothing_changed):
+        erosion_old = erosion
+        erosion = cv2.erode(erosion, SE, iterations=1)
+        erosion = np.maximum(erosion, img)
+        if np.array_equal(erosion, erosion_old):
+            nothing_changed = True
+    return erosion
+
+def closing_by_reconstruction(img, size_SE):
+    SE_dilation = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (size_SE, size_SE))
+    SE_size_erosion = max(size_SE//2, 1)
+    # SE_size_erosion = size_SE
+    SE_erosion = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (SE_size_erosion, SE_size_erosion))
+    marker_img = cv2.dilate(img, SE_dilation, iterations=1)
+    return reconstruction_by_erosion(marker_img, img, SE_erosion)
+
+
+def watershed_segmentation_circle(image, threshold_distance, threshold_segment, verbose = True):
+    """
+    This function performs the watershed segmentation of an image.
+    :param image: image to be segmented
+    :param threshold_distance: threshold for the distance transform
+    :param threshold_segment: threshold for the segmentation
+    :param verbose: if True, the function displays the intermediate results
+    :return: segmented image
+    """
+    image = cv2.medianBlur(image, 5)
     if(not image.dtype == bool):
-        _, image = cv2.threshold(image,0,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
+        if (threshold_segment == 0):
+            _, image_tr = cv2.threshold(image,0,255, cv2.THRESH_OTSU + cv2.THRESH_BINARY)
+            #image_tr = cv2.adaptiveThreshold(image,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV,11,2)
+        else:
+            _, image_tr = cv2.threshold(image,threshold_segment,255,cv2.THRESH_BINARY)
         if (verbose):
+            #show image after thresholding and image
+            plt.figure(figsize=(15, 10))
+            plt.subplot(1,2,1)
             plt.imshow(image, cmap=plt.cm.gray)
-            plt.title('Image after Threshold')
+            plt.title('Image')
+            plt.subplot(1,2,2)
+            plt.imshow(image_tr, cmap=plt.cm.gray)
+            plt.title('Image after thresholding')
             plt.show()
-    image = image.astype(np.uint8)
-    kernel = np.ones((3,3),np.uint8)
-    sure_bg = cv2.dilate(image,kernel,iterations=3)
-    distance = -cv2.distanceTransform(image, cv2.DIST_L2, 3)
+    image_tr = cv2.morphologyEx(image_tr, cv2.MORPH_OPEN, np.ones((3,3), np.uint8))
     if (verbose):
+            #show image after thresholding and image
+            plt.figure(figsize=(15, 10))
+            plt.subplot(1,2,1)
+            plt.imshow(image, cmap=plt.cm.gray)
+            plt.title('Image')
+            plt.subplot(1,2,2)
+            plt.imshow(image_tr, cmap=plt.cm.gray)
+            plt.title('Image after opening')
+            plt.show()
+    image_tr = image_tr.astype(np.uint8)
+    kernel = np.ones((3,3),np.uint8)
+    sure_bg = cv2.dilate(image_tr, kernel, iterations=3)
+    distance = -cv2.distanceTransform(image_tr, cv2.DIST_L2, 3)
+    if (verbose):
+        # Display the distance transform and image
+        plt.figure(figsize=(15, 10))
+        plt.subplot(1,2,1)
+        plt.imshow(image, cmap=plt.cm.gray)
+        plt.title('Image')
+        plt.subplot(1,2,2)
         plt.imshow(distance, cmap=plt.cm.gray)
         plt.title('Negative Distance Transformation')
         plt.show()
-    _, markers = cv2.threshold(distance, threshold, 255, cv2.THRESH_BINARY_INV)
+    _, markers = cv2.threshold(distance, threshold_distance, 255, cv2.THRESH_BINARY_INV)
     if (verbose):
+        # Display the markers after thresholding and image
+        plt.figure(figsize=(15, 10))
+        plt.subplot(1,2,1)
+        plt.imshow(image, cmap=plt.cm.gray)
+        plt.title('Image')
+        plt.subplot(1,2,2)
         plt.imshow(markers, cmap=plt.cm.gray)
-        plt.title('Markers after Threshold')
+        plt.title('Markers after thresholding')
         plt.show()
     unknown = cv2.subtract(sure_bg.astype(np.float32), markers)
     if (verbose):
+        # Display the unknown and markers after thresholding 
+        plt.figure(figsize=(15, 10))
+        plt.subplot(1,2,1)
+        plt.imshow(markers, cmap=plt.cm.gray)
+        plt.title('Image')
+        plt.subplot(1,2,2)
         plt.imshow(unknown, cmap=plt.cm.gray)
         plt.title('Unknown')
         plt.show()
     _, markers = cv2.connectedComponents(markers.astype(np.uint8))
     markers += 1
     markers[unknown==255] = 0
+    if (verbose):
+        # Display the unknown and markers after thresholding 
+        plt.figure(figsize=(15, 10))
+        plt.subplot(1,2,1)
+        plt.imshow(image, cmap=plt.cm.gray)
+        plt.title('Image')
+        plt.subplot(1,2,2)
+        plt.imshow(markers)
+        plt.title('markers after connected components')
+        plt.show()
     distance = distance.astype(np.uint8)
     distance = cv2.cvtColor(distance, cv2.COLOR_GRAY2RGB)
     image = image.astype(np.uint8)
     image = cv2.cvtColor(image, cv2.COLOR_GRAY2RGB)
     markers = cv2.watershed(image, markers)
+    if (verbose):
+        # Display the markers and image
+        plt.figure(figsize=(15, 10))
+        plt.subplot(1,2,1)
+        plt.imshow(image)
+        plt.title('Image')
+        plt.subplot(1,2,2)
+        plt.imshow(markers, cmap=plt.cm.gray)
+        plt.title('markers after watershed')
+        plt.show()
+    return markers
+
+def watershed_segmentation_pills(image, threshold_distance, threshold_segment, verbose = True):
+    """
+    This function performs the watershed segmentation of an image.
+    :param image: image to be segmented
+    :param threshold_distance: threshold for the distance transform
+    :param threshold_segment: threshold for the segmentation
+    :param verbose: if True, the function displays the intermediate results
+    :return: segmented image
+    """
+    image = cv2.medianBlur(image, 3)
+    if(not image.dtype == bool):
+        if (threshold_segment == 0):
+            _, image_tr = cv2.threshold(image,0,255, cv2.THRESH_OTSU + cv2.THRESH_BINARY)
+            #image_tr = cv2.adaptiveThreshold(image,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV,11,2)
+        else:
+            _, image_tr = cv2.threshold(image,threshold_segment,255,cv2.THRESH_BINARY)
+        if (verbose):
+            #show image after thresholding and image
+            plt.figure(figsize=(15, 10))
+            plt.subplot(1,2,1)
+            plt.imshow(image, cmap=plt.cm.gray)
+            plt.title('Image')
+            plt.subplot(1,2,2)
+            plt.imshow(image_tr, cmap=plt.cm.gray)
+            plt.title('Image after thresholding')
+            plt.show()
+    image_tr = cv2.morphologyEx(image_tr, cv2.MORPH_OPEN, np.ones((3,3), np.uint8))
+    if (verbose):
+            #show image after thresholding and image
+            plt.figure(figsize=(15, 10))
+            plt.subplot(1,2,1)
+            plt.imshow(image, cmap=plt.cm.gray)
+            plt.title('Image')
+            plt.subplot(1,2,2)
+            plt.imshow(image_tr, cmap=plt.cm.gray)
+            plt.title('Image after opening')
+            plt.show()
+    image_tr = image_tr.astype(np.uint8)
+    kernel = np.ones((3,3),np.uint8)
+    sure_bg = cv2.dilate(image_tr, kernel, iterations=3)
+    distance = -cv2.distanceTransform(image_tr, cv2.DIST_L2, 3)
+    if (verbose):
+        # Display the distance transform and image
+        plt.figure(figsize=(15, 10))
+        plt.subplot(1,2,1)
+        plt.imshow(image, cmap=plt.cm.gray)
+        plt.title('Image')
+        plt.subplot(1,2,2)
+        plt.imshow(distance, cmap=plt.cm.gray)
+        plt.title('Negative Distance Transformation')
+        plt.show()
+    _, markers = cv2.threshold(distance, threshold_distance, 255, cv2.THRESH_BINARY_INV)
+    markers_temp = markers.copy()
+    if (verbose):
+        # Display the markers after thresholding and image
+        plt.figure(figsize=(15, 10))
+        plt.subplot(1,2,1)
+        plt.imshow(image, cmap=plt.cm.gray)
+        plt.title('Image')
+        plt.subplot(1,2,2)
+        plt.imshow(markers, cmap=plt.cm.gray)
+        plt.title('Markers after thresholding')
+        plt.show()
+    #erode markers
+    # kernel = cv2.getStructuringElement(cv2.MORPH_CROSS,(3,3))
+    # markers = cv2.erode(markers, kernel, iterations=2)
+    # if (verbose):
+    #     # Display the markers after thresholding and image
+    #     plt.figure(figsize=(15, 10))
+    #     plt.subplot(1,2,1)
+    #     plt.imshow(markers_temp, cmap=plt.cm.gray)
+    #     plt.title('Markers after thresholding')
+    #     plt.subplot(1,2,2)
+    #     plt.imshow(markers, cmap=plt.cm.gray)
+    #     plt.title('Markers after eorosion')
+    #     plt.show()
+    unknown = cv2.subtract(sure_bg.astype(np.float32), markers)
+    if (verbose):
+        # Display the unknown and markers after thresholding 
+        plt.figure(figsize=(15, 10))
+        plt.subplot(1,2,1)
+        plt.imshow(markers, cmap=plt.cm.gray)
+        plt.title('Image')
+        plt.subplot(1,2,2)
+        plt.imshow(unknown, cmap=plt.cm.gray)
+        plt.title('Unknown')
+        plt.show()
+    _, markers = cv2.connectedComponents(markers.astype(np.uint8))
+    markers += 1
+    markers[unknown==255] = 0
+    if (verbose):
+        # Display the unknown and markers after thresholding 
+        plt.figure(figsize=(15, 10))
+        plt.subplot(1,2,1)
+        plt.imshow(image, cmap=plt.cm.gray)
+        plt.title('Image')
+        plt.subplot(1,2,2)
+        plt.imshow(markers)
+        plt.title('markers after connected components')
+        plt.show()
+    distance = distance.astype(np.uint8)
+    distance = cv2.cvtColor(distance, cv2.COLOR_GRAY2RGB)
+    image = image.astype(np.uint8)
+    image = cv2.cvtColor(image, cv2.COLOR_GRAY2RGB)
+    markers = cv2.watershed(image, markers)
+    if (verbose):
+        # Display the markers and image
+        plt.figure(figsize=(15, 10))
+        plt.subplot(1,2,1)
+        plt.imshow(image)
+        plt.title('Image')
+        plt.subplot(1,2,2)
+        plt.imshow(markers, cmap=plt.cm.gray)
+        plt.title('markers after watershed')
+        plt.show()
+    return markers
+
+
+def watershed_segmentation_cells(image, threshold_distance, threshold_segment, verbose = True):
+    """
+    This function performs the watershed segmentation of an image.
+    :param image: image to be segmented
+    :param threshold_distance: threshold for the distance transform
+    :param threshold_segment: threshold for the segmentation
+    :param verbose: if True, the function displays the intermediate results
+    :return: segmented image
+    """
+    #invert image
+    image = 255 - image
+    image = cv2.medianBlur(image, 5)
+    if(not image.dtype == bool):
+        if (threshold_segment == 0):
+            _, image_tr = cv2.threshold(image,0,255, cv2.THRESH_OTSU + cv2.THRESH_BINARY)
+            #image_tr = cv2.adaptiveThreshold(image,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV,11,2)
+        else:
+            _, image_tr = cv2.threshold(image,threshold_segment,255,cv2.THRESH_BINARY)
+        if (verbose):
+            #show image after thresholding and image
+            plt.figure(figsize=(15, 10))
+            plt.subplot(1,2,1)
+            plt.imshow(image, cmap=plt.cm.gray)
+            plt.title('Image')
+            plt.subplot(1,2,2)
+            plt.imshow(image_tr, cmap=plt.cm.gray)
+            plt.title('Image after thresholding')
+            plt.show()
+    image_tr = cv2.morphologyEx(image_tr, cv2.MORPH_OPEN, np.ones((3,3), np.uint8))
+    if (verbose):
+            #show image after thresholding and image
+            plt.figure(figsize=(15, 10))
+            plt.subplot(1,2,1)
+            plt.imshow(image, cmap=plt.cm.gray)
+            plt.title('Image')
+            plt.subplot(1,2,2)
+            plt.imshow(image_tr, cmap=plt.cm.gray)
+            plt.title('Image after opening')
+            plt.show()
+    image_reconstructed = closing_by_reconstruction(image_tr, 15)
+    if (verbose):
+            #show image after thresholding and image
+            plt.figure(figsize=(15, 10))
+            plt.subplot(1,2,1)
+            plt.imshow(image_tr, cmap=plt.cm.gray)
+            plt.title('Image after opening')
+            plt.subplot(1,2,2)
+            plt.imshow(image_reconstructed, cmap=plt.cm.gray)
+            plt.title('Image after closing by reconstruction')
+            plt.show()
+    image_reconstructed = image_reconstructed.astype(np.uint8)
+    kernel = np.ones((3,3),np.uint8)
+    sure_bg = cv2.dilate(image_reconstructed, kernel, iterations=3)
+    distance = -cv2.distanceTransform(image_reconstructed, cv2.DIST_L2, 3)
+    if (verbose):
+        # Display the distance transform and image
+        plt.figure(figsize=(15, 10))
+        plt.subplot(1,2,1)
+        plt.imshow(image, cmap=plt.cm.gray)
+        plt.title('Image')
+        plt.subplot(1,2,2)
+        plt.imshow(distance, cmap=plt.cm.gray)
+        plt.title('Negative Distance Transformation')
+        plt.show()
+    _, markers = cv2.threshold(distance, threshold_distance, 255, cv2.THRESH_BINARY_INV)
+    if (verbose):
+        # Display the markers after thresholding and image
+        plt.figure(figsize=(15, 10))
+        plt.subplot(1,2,1)
+        plt.imshow(image, cmap=plt.cm.gray)
+        plt.title('Image')
+        plt.subplot(1,2,2)
+        plt.imshow(markers, cmap=plt.cm.gray)
+        plt.title('Markers after thresholding')
+        plt.show()
+    unknown = cv2.subtract(sure_bg.astype(np.float32), markers)
+    if (verbose):
+        # Display the unknown and markers after thresholding 
+        plt.figure(figsize=(15, 10))
+        plt.subplot(1,2,1)
+        plt.imshow(markers, cmap=plt.cm.gray)
+        plt.title('Image')
+        plt.subplot(1,2,2)
+        plt.imshow(unknown, cmap=plt.cm.gray)
+        plt.title('Unknown')
+        plt.show()
+    _, markers = cv2.connectedComponents(markers.astype(np.uint8))
+    markers += 1
+    markers[unknown==255] = 0
+    if (verbose):
+        # Display the unknown and markers after thresholding 
+        plt.figure(figsize=(15, 10))
+        plt.subplot(1,2,1)
+        plt.imshow(image, cmap=plt.cm.gray)
+        plt.title('Image')
+        plt.subplot(1,2,2)
+        plt.imshow(markers)
+        plt.title('markers after connected components')
+        plt.show()
+    distance = distance.astype(np.uint8)
+    distance = cv2.cvtColor(distance, cv2.COLOR_GRAY2RGB)
+    image = image.astype(np.uint8)
+    image = cv2.cvtColor(image, cv2.COLOR_GRAY2RGB)
+    markers = cv2.watershed(image, markers)
+    if (verbose):
+        # Display the markers and image
+        plt.figure(figsize=(15, 10))
+        plt.subplot(1,2,1)
+        plt.imshow(image)
+        plt.title('Image')
+        plt.subplot(1,2,2)
+        plt.imshow(markers, cmap=plt.cm.gray)
+        plt.title('markers after watershed')
+        plt.show()
     return markers
 
 
@@ -57,9 +380,9 @@ def testimage():
 
 image = testimage()
 # Display the image
-plt.imshow(image, cmap=plt.cm.gray)
-plt.show()
-segmented = watershed_segmentation(image, -32)
+# plt.imshow(image, cmap=plt.cm.gray)
+# plt.show()
+segmented = watershed_segmentation_circle(image, -32, 0, verbose=False)
 
 plt.figure(figsize=(15, 10))
 plt.subplot(1,2,1)
@@ -74,9 +397,9 @@ plt.show()
 
 image = read_image(r'data\pills.jpg')
 # Display the image
-plt.imshow(image, cmap=plt.cm.gray)
-plt.show()
-segmented = watershed_segmentation(image, -5)
+# plt.imshow(image, cmap=plt.cm.gray)
+# plt.show()
+segmented = watershed_segmentation_pills(image, -5.5, 0, verbose=False)
 plt.figure(figsize=(15, 10))
 plt.subplot(1,2,1)
 plt.imshow(image, cmap='gray')
@@ -86,45 +409,20 @@ plt.imshow(segmented, cmap='gray')
 plt.title('Segmented Image with negative Distance map and watershed')
 plt.show()
 
-
-# #create negative distance transform
-# image = image.astype(np.uint8)
-# kernel = np.ones((3,3),np.uint8)
-# sure_bg = cv2.dilate(image,kernel,iterations=3)
-# distance = -cv2.distanceTransform(image, cv2.DIST_L2, 3)
-
-# # Display the distance transform
-# plt.imshow(distance, cmap=plt.cm.gray)
-# plt.title('Negative Distance Transformation')
+image = read_image(r'data\img_cells.jpg')
+# Display the image
+# plt.imshow(image, cmap=plt.cm.gray)
 # plt.show()
+segmented = watershed_segmentation_cells(image, -9.5, 0, verbose = False)
+plt.figure(figsize=(15, 10))
+plt.subplot(1,2,1)
+plt.imshow(image, cmap='gray')
+plt.title('Image')
+plt.subplot(1,2,2)
+plt.imshow(segmented, cmap='gray')
+plt.title('Segmented Image with negative Distance map and watershed')
+plt.show()
 
-# ret, markers = cv2.threshold(distance, -32, 255, cv2.THRESH_BINARY_INV)
-
-# unknown = cv2.subtract(sure_bg.astype(np.float32), markers)
-
-# plt.imshow(markers, cmap=plt.cm.gray)
-# plt.title('Markers after Threshold')
-# plt.show()
-
-# ret, markers = cv2.connectedComponents(markers.astype(np.uint8))
-# markers += 1
-# markers[unknown==1] = 0
-
-# plt.imshow(markers, cmap=plt.cm.gray)
-# plt.title('Connected Components')
-# plt.show()
-
-# distance = distance.astype(np.uint8)
-# distance = cv2.cvtColor(distance, cv2.COLOR_GRAY2RGB)
-
-# image = image.astype(np.uint8)
-# image = cv2.cvtColor(image, cv2.COLOR_GRAY2RGB)
-
-# markers = cv2.watershed(image, markers)
-
-# plt.imshow(markers, cmap=plt.cm.gray)
-# plt.title('Segmented')
-# plt.show()
 
 
 
