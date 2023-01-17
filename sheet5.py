@@ -245,13 +245,31 @@ class SoftmaxClassifier():
         self.x_train = self.normalize(np.array(hog_train))
         self.x_test = self.normalize(np.array(hog_test))
 
+    def optimize_hyperparams(self, learning_rates, reg_strengths, num_iters, batch_size, verbose=False):
+        ''' Optimizes the hyperparameters for the classifier. '''
+        results = {}
+        best_val = -1
+        best_lr = None
+        best_reg = None
+        best_acc = -1
+        for lr in learning_rates:
+            for reg in reg_strengths:
+                loss_hist = self.train(lr, reg, num_iters, batch_size, verbose=verbose, reset_weights=True)
+                acc = self.check_accuracy(None, verbose=verbose)
+                if acc > best_acc:
+                    best_acc = acc
+                    best_lr = lr
+                    best_reg = reg
+                if(verbose):
+                    print('lr: {} reg: {} acc: {}'.format(lr, reg, acc))
+        return best_lr, best_reg
 
 
-    def train(self, learning_rate=1e-3, reg=1e-5, num_iters=100, batch_size=200, verbose=False):
+    def train(self, learning_rate=1e-3, reg=1e-5, num_iters=100, batch_size=200, verbose=False, reset_weights=False):
         ''' Train the classifier using stochastic gradient descent. '''
         num_train, dim = self.x_train.shape
         num_classes = np.max(self.y_train) + 1
-        if self.W is None:
+        if self.W is None or reset_weights == True:
             self.W = 0.001 * np.random.randn(dim, num_classes)
 
         # Run stochastic gradient descent to optimize W
@@ -331,7 +349,7 @@ class SoftmaxClassifier():
 # Create an instance of the cifar10 class
 dataset = Cifar10Dataset('data/cifar10/', 50000)
 
-problem = 4
+problem = 3
 if(problem == 1):
     knn = KNNClassifier(dataset)
     #k_choices=[1, 5, 10, 20, 50, 100]
@@ -389,7 +407,7 @@ if(problem == 3):
 
     knn = KNNClassifier(dataset)
     knn.use_hog_features(hog_train, hog_test)
-    k_choices=[1, 3, 5, 7, 10, 12, 15, 20]
+    k_choices=[1, 3, 5, 7, 10, 12, 15, 20, 25, 30, 35, 40, 45, 50]
     best_k = knn.cross_validation(num_samples = 10000, num_folds=5, k_choices=k_choices)
     test_data_indices = None
     acc = knn.check_accuracy(test_data_indices, k=best_k, cross_val = False, verbose=True)
@@ -415,5 +433,9 @@ if(problem == 4):
 
     softmax = SoftmaxClassifier(dataset)
     softmax.use_hog_features(hog_train, hog_test)
-    softmax.train(learning_rate=1e-7, reg=5e4, num_iters=1500, verbose=True)
+
+    best_lr, best_reg = softmax.optimize_hyperparams(learning_rates=[1e-7, 5e-7, 1e-6, 5e-6, 1e-5], reg_strengths=[5e4, 1e5, 5e5, 1e6, 5e6], num_iters=1500, batch_size=200, verbose=True)
+    
+    softmax.train(learning_rate=best_lr, reg=best_reg, num_iters=1500, verbose=True, reset_weights=True)
     acc = softmax.check_accuracy(verbose=True)
+    print('best learning rate: {}, best regularization strength: {}'.format(best_lr, best_reg))
