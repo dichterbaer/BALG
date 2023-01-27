@@ -44,7 +44,7 @@ transform = transforms.Compose(
     [transforms.ToTensor(),
      transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
 
-batch_size = 25
+batch_size = 8
 
 trainset = torchvision.datasets.CIFAR10(root='./data', train=True,
                                         download=True, transform=transform)
@@ -76,72 +76,44 @@ images, labels = next(dataiter)
 # # print labels
 # print(' '.join(f'{classes[labels[j]]:5s}' for j in range(batch_size)))
 
-criterion = nn.CrossEntropyLoss()
-optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
 
+def train(net, num_epochs, lr, momentum=0.9):
+    criterion = nn.CrossEntropyLoss()
+    optimizer = optim.SGD(net.parameters(), lr=lr, momentum=momentum)
+
+    for epoch in range(num_epochs):  # loop over the dataset multiple times
+
+        running_loss = 0.0
+        for i, data in enumerate(trainloader, 0):
+            # get the inputs; data is a list of [inputs, labels]
+            inputs, labels = data[0].to(device), data[1].to(device)
+
+            # zero the parameter gradients
+            optimizer.zero_grad()
+
+            # forward + backward + optimize
+            outputs = net(inputs)
+            loss = criterion(outputs, labels)
+            loss.backward()
+            optimizer.step()
+
+            # print statistics
+            running_loss += loss.item()
+            if i % 2000 == 1999:    # print every 2000 mini-batches
+                print(f'[{epoch + 1}, {i + 1:5d}] loss: {running_loss / 2000:.3f}')
+                running_loss = 0.0
+
+    print('Finished Training')
+
+    PATH = f'./cifar_net_lr_{lr}_momentum_{momentum}_last_loss_{loss}.pth'
+    torch.save(net.state_dict(), PATH)
+
+
+learning_rates = [0.0005, 0.001, 0.005, 0.01, 0.05]
+momentums = [0.7, 0.9, 0.95, 0.99]
 num_epochs = 15
+for lr in learning_rates:
+    for momentum in momentums:
+        print(f'lr: {lr} momentum: {momentum}')
+        train(net, num_epochs, lr, momentum)
 
-for epoch in range(num_epochs):  # loop over the dataset multiple times
-
-    running_loss = 0.0
-    for i, data in enumerate(trainloader, 0):
-        # get the inputs; data is a list of [inputs, labels]
-        inputs, labels = data[0].to(device), data[1].to(device)
-
-        # zero the parameter gradients
-        optimizer.zero_grad()
-
-        # forward + backward + optimize
-        outputs = net(inputs)
-        loss = criterion(outputs, labels)
-        loss.backward()
-        optimizer.step()
-
-        # print statistics
-        running_loss += loss.item()
-        if i % 2000 == 1999:    # print every 2000 mini-batches
-            print(f'[{epoch + 1}, {i + 1:5d}] loss: {running_loss / 2000:.3f}')
-            running_loss = 0.0
-
-print('Finished Training')
-
-PATH = './cifar_net.pth'
-torch.save(net.state_dict(), PATH)
-
-correct = 0
-total = 0
-# since we're not training, we don't need to calculate the gradients for our outputs
-with torch.no_grad():
-    for data in testloader:
-        images, labels = data[0].to(device), data[1].to(device)
-        # calculate outputs by running images through the network
-        outputs = net(images)
-        # the class with the highest energy is what we choose as prediction
-        _, predicted = torch.max(outputs.data, 1)
-        total += labels.size(0)
-        correct += (predicted == labels).sum().item()
-
-print(f'Accuracy of the network on the 10000 test images: {100 * correct // total} %')
-
-# prepare to count predictions for each class
-correct_pred = {classname: 0 for classname in classes}
-total_pred = {classname: 0 for classname in classes}
-
-
-# again no gradients needed
-with torch.no_grad():
-    for data in testloader:
-        images, labels = data[0].to(device), data[1].to(device)
-        outputs = net(images)
-        _, predictions = torch.max(outputs, 1)
-        # collect the correct predictions for each class
-        for label, prediction in zip(labels, predictions):
-            if label == prediction:
-                correct_pred[classes[label]] += 1
-            total_pred[classes[label]] += 1
-
-
-# print accuracy for each class
-for classname, correct_count in correct_pred.items():
-    accuracy = 100 * float(correct_count) / total_pred[classname]
-    print(f'Accuracy for class: {classname:5s} is {accuracy:.1f} %')
