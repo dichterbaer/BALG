@@ -67,51 +67,67 @@ alexnet.to(device)
 #Loss
 criterion = nn.CrossEntropyLoss()
 
+
+PATH = f'cifar_alexnet_transfer_lr_0.001_momentum_0.9_last_loss_0.8667344450950623.pth'
+alexnet.load_state_dict(torch.load(PATH))
 #Optimizer(SGD)
 #optimizer = (look up torch.optim.SGD)
-lr = 0.001
-momentum = 0.9
-optimizer = optim.SGD(alexnet.parameters(), lr=lr, momentum=momentum)
+# lr = 0.001
+# momentum = 0.9
+# optimizer = optim.SGD(alexnet.parameters(), lr=lr, momentum=momentum)
 
 
-for epoch in range(10):  # loop over the dataset multiple times
-    running_loss = 0.0
-    for i, data in enumerate(trainloader, 0):
-        # get the inputs; data is a list of [inputs, labels]
-        inputs, labels = data[0].to(device), data[1].to(device)
+# for epoch in range(10):  # loop over the dataset multiple times
+#     running_loss = 0.0
+#     for i, data in enumerate(trainloader, 0):
+#         # get the inputs; data is a list of [inputs, labels]
+#         inputs, labels = data[0].to(device), data[1].to(device)
 
-        # zero the parameter gradients
-        optimizer.zero_grad()
+#         # zero the parameter gradients
+#         optimizer.zero_grad()
 
-        # forward + backward + optimize
-        output = alexnet(inputs)
-        loss = criterion(output, labels)
-        loss.backward()
-        optimizer.step()
+#         # forward + backward + optimize
+#         output = alexnet(inputs)
+#         loss = criterion(output, labels)
+#         loss.backward()
+#         optimizer.step()
 
-        # print statistics
-        running_loss += loss.item()
-        if i % 2000 == 1999:    # print every 2000 mini-batches
-            print('[%d, %5d] loss: %.3f' %
-                  (epoch + 1, i + 1, running_loss / 2000))
-            running_loss = 0.0
+#         # print statistics
+#         running_loss += loss.item()
+#         if i % 2000 == 1999:    # print every 2000 mini-batches
+#             print('[%d, %5d] loss: %.3f' %
+#                   (epoch + 1, i + 1, running_loss / 2000))
+#             running_loss = 0.0
 
-    #print('Finished Epoch Training of AlexNet')
+#     #print('Finished Epoch Training of AlexNet')
 
-    #Testing Accuracy
-    correct = 0
-    total = 0
-    with torch.no_grad():
-        for data in testloader:
-            images, labels = data[0].to(device), data[1].to(device)
-            outputs = alexnet(images)
-            _, predicted = torch.max(outputs.data, 1)
-            total += labels.size(0)
-            correct += (predicted == labels).sum().item()
+#     #Testing Accuracy
+#     correct = 0
+#     total = 0
+#     with torch.no_grad():
+#         for data in testloader:
+#             images, labels = data[0].to(device), data[1].to(device)
+#             outputs = alexnet(images)
+#             _, predicted = torch.max(outputs.data, 1)
+#             total += labels.size(0)
+#             correct += (predicted == labels).sum().item()
 
-    print('Accuracy of the network on the 10000 test images: %d %%' % (
-        100 * correct / total))
+#     print('Accuracy of the network on the 10000 test images: %d %%' % (
+#         100 * correct / total))
 
+#Testing Accuracy
+correct = 0
+total = 0
+with torch.no_grad():
+    for data in testloader:
+        images, labels = data[0].to(device), data[1].to(device)
+        outputs = alexnet(images)
+        _, predicted = torch.max(outputs.data, 1)
+        total += labels.size(0)
+        correct += (predicted == labels).sum().item()
+
+print('Accuracy of the network on the 10000 test images: %d %%' % (
+    100 * correct / total))
 #Testing classification accuracy for individual classes.
 class_correct = list(0. for i in range(10))
 class_total = list(0. for i in range(10))
@@ -130,6 +146,5 @@ for i in range(10):
     print('Accuracy of %5s : %2d %%' % (
         classes[i], 100 * class_correct[i] / class_total[i]))   
 
-print('Finished Training of AlexNet')
-PATH = f'./cifar_alexnet_transfer_lr_{lr}_momentum_{momentum}_last_loss_{loss}.pth'
-torch.save(alexnet.state_dict(), PATH)
+# print('Finished Training of AlexNet')
+# torch.save(alexnet.state_dict(), PATH)
